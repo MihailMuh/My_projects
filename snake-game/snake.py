@@ -14,7 +14,6 @@ pygame.mixer.init()
 x = 1280
 y = 680
 FPS = 20
-snake = []
 filename = 'score_snake.txt'
 score = 0
 
@@ -24,13 +23,13 @@ blue = ((0, 0, 255))
 green = ((0, 255, 0))
 red = ((255, 0, 0))
 black = ((0, 0, 0))
-orange = ((255, 100, 10))
+orange = ((255, 100, 100))
 yellow = ((255, 255, 0))
 
 font_name = pygame.font.match_font('Arial')
 
 
-class Head():
+class Head:
     def __init__(self):
         self.snake_body = [[400, 200], [370, 200], [340, 200], [310, 200], [280, 200], [250, 200], [220, 200]]
         self.head = [400, 200]
@@ -104,7 +103,7 @@ class Head():
         self.snake_body.append([self.snake_body[-1][0], self.snake_body[-1][1]])
 
 
-class Food():
+class Food:
     def __init__(self):
         self.placement = [random.randrange(40, x - 85, 30), random.randrange(50, y - 89, 30)]
 
@@ -113,6 +112,49 @@ class Food():
 
     def rollback(self):
         self.placement = [random.randrange(40, x - 85, 30), random.randrange(50, y - 89, 30)]
+
+
+class UltraFood:
+    def __init__(self):
+        self.pos = [random.randrange(40, x - 85, 30), random.randrange(50, y - 89, 30)]
+
+    def update(self, surface):
+        pygame.draw.circle(surface, orange, (self.pos[0], self.pos[1]), 25)
+
+    def rollback(self):
+        self.pos = [random.randrange(40, x - 85, 30), random.randrange(50, y - 89, 30)]
+
+    def invisible(self):
+        self.pos = [1000000, 1000000]
+
+
+class Enemies:
+    def __init__(self):
+        self.position = [random.randrange(40, x - 85, 30), random.randrange(50, y - 89, 30)]
+        self.heading = random.choice(('right', 'left', 'up', 'down'))
+
+    def update(self, surface):
+        pygame.draw.rect(surface, white, pygame.Rect(self.position[0], self.position[1], 25, 25))
+        if self.heading == 'down':
+            self.position[1] += 30
+        if self.heading == 'up':
+            self.position[1] -= 30
+        if self.heading == 'left':
+            self.position[0] -= 30
+        if self.heading == 'right':
+            self.position[0] += 30
+
+        if self.position[0] > x - 65:
+            self.position[0] = 35
+        if self.position[0] < 35:
+            self.position[0] = x - 65
+        if self.position[1] > y - 65:
+            self.position[1] = 45
+        if self.position[1] < 45:
+            self.position[1] = y - 65
+
+    def rollback(self):
+        self.position = [random.randrange(40, x - 85, 30), random.randrange(50, y - 89, 30)]
 
 
 def draw_text(surf, text, size, x, y):
@@ -144,12 +186,16 @@ def game():
     screen = pygame.display.set_mode((x, y), pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.FULLSCREEN)
 
     clock = pygame.time.Clock()
+    enemies = []
 
     snake = Head()
     food = Food()
+    meal = UltraFood()
+    meal.invisible()
 
     running = True
     while running:
+        screen.fill(black)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 score_file = open(filename, 'w')
@@ -171,21 +217,45 @@ def game():
                 if (event.key == pygame.K_d) or (event.key == pygame.K_RIGHT):
                     snake.right()
 
-        screen.fill(black)
+        for i in enemies:
+            if (i.position[0] - 9 <= snake.head[0] <= i.position[0] + 9) and\
+                    (i.position[1] - 9 <= snake.head[1] <= i.position[1] + 9):
+                score_file = open(filename, 'w')
+                score_file.write(str(max(score, max_score)))
+                score_file.close()
+                return
+
         pygame.draw.rect(screen, blue, (30, 40, x-65, y-79), 10)
         snake.update(screen)
         food.update(screen)
+        meal.update(screen)
+        for i in enemies:
+            i.update(screen)
         if (snake.head[0] == food.placement[0]) and (snake.head[1] == food.placement[1]):
             food.rollback()
+            meal.invisible()
             snake.grow()
-            score += 1
+            score += 5
+            if score % 35 == 0:
+                enem = Enemies()
+                while (snake.head[0] == enem.position[0]) and (snake.head[1] == enem.position[1]):
+                    enem.rollback()
+                enemies.append(enem)
+            if score % 25 == 0 and score != 0:
+                meal.rollback()
+        if (snake.head[0] == meal.pos[0]) and (snake.head[1] == meal.pos[1]):
+            meal.invisible()
+            food.rollback()
+            for i in range(5):
+                snake.grow()
+            score += 60
         draw_text(screen, 'score: ' + str(score), 35, 200, 100)
         draw_text(screen, 'MAX score: ' + str(max_score), 35, x - 200, 100)
-        if score <= 10:
-            time.sleep(0.1 - score / 100)
+        if score <= 500:
+            time.sleep(0.1 - score / 5000)
             clock.tick(FPS)
         else:
-            clock.tick(FPS + (score // 10) * 2)
+            clock.tick(FPS + score // 50)
         pygame.display.flip()
 
 
