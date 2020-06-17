@@ -1,13 +1,13 @@
 import pygame
 from tkinter import *
 from tkinter import messagebox
-from tkinter.ttk import Checkbutton
 from tkinter.ttk import Radiobutton
 import random
 import os
 import sys
 from PIL import ImageTk, Image
 import time
+from scriptspy import inventar, icons, shoots, support, button, explosions
 
 pygame.init()
 pygame.mixer.init()
@@ -44,18 +44,13 @@ coffee_brown = ((200, 190, 140))
 moon_glow = ((235, 245, 255))
 
 game_folder = os.path.dirname(__file__)
-img_folder = os.path.join(game_folder, 'images')
-snd_folder = os.path.join(game_folder, 'sounds')
+img_folder = os.path.join(game_folder, 'scriptspy\images')
+snd_folder = os.path.join(game_folder, 'scriptspy\sounds')
 
 img_npc = pygame.image.load(os.path.join(img_folder, 'ship.png'))
-img_bullet = pygame.image.load(os.path.join(img_folder, 'bullet.png'))
-img_bullet_sh = pygame.image.load(os.path.join(img_folder, 'bullet.png'))
 img_vader4 = pygame.image.load(os.path.join(img_folder, 'vader4.png'))
 img_putin = pygame.image.load(os.path.join(img_folder, 'putin.png'))
 img_virus = pygame.image.load(os.path.join(img_folder, 'virus.png'))
-inventar = pygame.image.load(os.path.join(img_folder, 'invent.jpg'))
-shotgun = pygame.image.load(os.path.join(img_folder, 'shotgun.png'))
-rifle = pygame.image.load(os.path.join(img_folder, 'rifle.png'))
 meteor = pygame.image.load(os.path.join(img_folder, 'meteor.png'))
 ful_heart = pygame.image.load(os.path.join(img_folder, 'ful_heart.png'))
 half_heart = pygame.image.load(os.path.join(img_folder, 'half_heart.png'))
@@ -64,7 +59,6 @@ health = pygame.image.load(os.path.join(img_folder, 'health.png'))
 fly_sh = pygame.image.load(os.path.join(img_folder, 'buckshot.png'))
 button_press = pygame.image.load(os.path.join(img_folder, 'button_press.png'))
 button_notpress = pygame.image.load(os.path.join(img_folder, 'button_notpress.png'))
-menu_img = pygame.image.load(os.path.join(img_folder, 'menu.png'))
 img_death = pygame.image.load(os.path.join(img_folder, 'skull.png'))
 img_boss_virus = pygame.image.load(os.path.join(img_folder, 'boss_virus.png'))
 boss = pygame.image.load(os.path.join(img_folder, 'boss_1.png'))
@@ -74,7 +68,7 @@ laser_sound.set_volume(0.05)
 shotgun_sound = pygame.mixer.Sound(os.path.join(snd_folder, 'shotgun.wav'))
 shotgun_sound.set_volume(0.2)
 boom_snd = pygame.mixer.Sound(os.path.join(snd_folder, 'boom1.wav'))
-boom_snd.set_volume(0.02)
+boom_snd.set_volume(0.035)
 metal = pygame.mixer.Sound(os.path.join(snd_folder, 'metal.wav'))
 metal.set_volume(0.1)
 heal_sound = pygame.mixer.Sound(os.path.join(snd_folder, 'heal.wav'))
@@ -94,38 +88,6 @@ vader_images = []
 vader_list = ['vader.png', 'vader2.png', 'vader3.png']
 for img in vader_list:
     vader_images.append(pygame.image.load(os.path.join(img_folder, img)))
-
-explosion_anim = {}
-explosion_anim['lg'] = []
-explosion_anim['sm'] = []
-explosion_anim['hu'] = []
-for i in range(8):
-    filename = 'regularExplosion0{}.png'.format(i)
-    img = pygame.image.load(os.path.join(img_folder, filename))
-    # img.set_colorkey((255, 255, 255))
-    # img.set_colorkey((0, 0, 0))
-    img_hu = pygame.transform.scale(img, (300, 280))
-    explosion_anim['hu'].append(img_hu)
-    img_lg = pygame.transform.scale(img, (145, 125))
-    explosion_anim['lg'].append(img_lg)
-    img_sm = pygame.transform.scale(img, (50, 50))
-    explosion_anim['sm'].append(img_sm)
-
-explosion_anim2 = {}
-explosion_anim2['lg'] = []
-explosion_anim2['sm'] = []
-explosion_anim2['hu'] = []
-for i in range(12):
-    filename2 = 'Explosion0{}.png'.format(i)
-    img2 = pygame.image.load(os.path.join(img_folder, filename2))
-    # img.set_colorkey((255, 255, 255))
-    # img.set_colorkey((0, 0, 0))
-    img_hu2 = pygame.transform.scale(img2, (300, 280))
-    explosion_anim2['hu'].append(img_hu2)
-    img_lg2 = pygame.transform.scale(img2, (145, 125))
-    explosion_anim2['lg'].append(img_lg2)
-    img_sm2 = pygame.transform.scale(img2, (70, 55))
-    explosion_anim2['sm'].append(img_sm2)
 
 reload_sounds = []
 reload_list = ['reload0.wav', 'reload1.wav', 'reload2.wav']
@@ -164,90 +126,6 @@ ju = 1
 equip = 0
 speed_enem = 4
 gameovers = 0
-
-
-class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 10
-        self.image = img_bullet
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet, (15, 40))
-        if sprites:
-            pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -35
-
-    def update(self):
-        self.rect.y += self.speedy
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Drob_boss(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = img_bullet_sh
-        self.radius = 5
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet_sh, (20, 40))
-        self.image = pygame.transform.rotate(self.image, 180)
-        if sprites == True:
-            pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -13
-
-    def update(self):
-        self.rect.y -= self.speedy
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Drob2_boss(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = img_bullet_sh
-        self.radius = 5
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet_sh, (20, 40))
-        self.image = pygame.transform.rotate(self.image, 210)
-        if sprites == True:
-            pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -13
-        self.speedx = -8
-
-    def update(self):
-
-        self.rect.y -= self.speedy
-        self.rect.x -= self.speedx
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Drob3_boss(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = img_bullet_sh
-        self.radius = 5
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet_sh, (20, 40))
-        self.image = pygame.transform.rotate(self.image, -210)
-        if sprites == True:
-            pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -13
-        self.speedx = 8
-
-    def update(self):
-        self.rect.y -= self.speedy
-        self.rect.x -= self.speedx
-        if self.rect.bottom < 0:
-            self.kill()
 
 
 class Boss(pygame.sprite.Sprite):
@@ -289,76 +167,20 @@ class Boss(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         if now - self.last_shot > self.shoot_time:
             self.last_shot = now
-            drob1 = Drob_boss(self.rect.centerx + 35, self.rect.bottom - 70)
-            drob2 = Drob2_boss(self.rect.centerx + 35, self.rect.bottom - 70)
-            drob3 = Drob3_boss(self.rect.centerx + 22, self.rect.bottom - 70)
+            drob = shoots.Drob_boss('drob', self.rect.centerx + 35, self.rect.bottom - 70)
+            all_sprites.add(drob)
+            drobs_boss.add(drob)
+            drob = shoots.Drob_boss('drob2', self.rect.centerx + 35, self.rect.bottom - 70)
+            all_sprites.add(drob)
+            drobs_boss.add(drob)
+            drob = shoots.Drob_boss('drob3', self.rect.centerx + 22, self.rect.bottom - 70)
+            all_sprites.add(drob)
+            drobs_boss.add(drob)
             laser_sound.play()
-            all_sprites.add(drob1)
-            drobs_boss.add(drob1)
-            all_sprites.add(drob2)
-            drobs_boss.add(drob2)
-            all_sprites.add(drob3)
-            drobs_boss.add(drob3)
 
-    def update(self):
-        self.shotgun_boss()
-        self.rect.y += self.speedy
-        if self.rect.y == 50:
-            self.speedy = 0
-            self.rect.x -= self.speedx
-            if self.rect.right < 0:
-                self.rect.left = x + 200
-
-
-class Boss_hard(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 150
-        if mob_b:
-            self.image = img_vader4
-            self.image = pygame.transform.scale(img_vader4, (260, 200))
-        elif putin:
-            self.radius = 160
-            self.image = img_putin
-            self.image = pygame.transform.scale(img_putin, (200, 220))
-            self.image.set_colorkey((0, 0, 0))
-        elif virus:
-            self.image = img_boss_virus
-            self.image = pygame.transform.scale(img_boss_virus, (250, 250))
-        elif vaders:
-            self.image = boss
-            self.image = pygame.transform.scale(boss, (200, 200))
-        elif death:
-            self.image = img_death
-            self.image = pygame.transform.scale(img_death, (195, 250))
-            self.image.set_colorkey((0, 0, 0))
-        self.rect = self.image.get_rect()
-        if sprites:
-            pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
-        self.rect.x = x // 2 - 100
-        self.rect.y = -300
-        self.speedy = 2
+    def hard(self):
         self.speedx = 12
         self.shoot_time = 600
-        self.last_shot = pygame.time.get_ticks()
-
-    def shotgun_boss(self):
-        global all_sprites
-        global drobs_boss
-
-        now = pygame.time.get_ticks()
-        if now - self.last_shot > self.shoot_time:
-            self.last_shot = now
-            drob1 = Drob_boss(self.rect.centerx + 35, self.rect.bottom - 70)
-            drob2 = Drob2_boss(self.rect.centerx + 35, self.rect.bottom - 70)
-            drob3 = Drob3_boss(self.rect.centerx + 22, self.rect.bottom - 70)
-            laser_sound.play()
-            all_sprites.add(drob1)
-            drobs_boss.add(drob1)
-            all_sprites.add(drob2)
-            drobs_boss.add(drob2)
-            all_sprites.add(drob3)
-            drobs_boss.add(drob3)
 
     def update(self):
         self.shotgun_boss()
@@ -409,7 +231,7 @@ class Imperia(pygame.sprite.Sprite):
             self.image.set_colorkey((0, 0, 0))
 
         self.rect = self.image.get_rect()
-        if sprites == True:
+        if sprites:
             pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
         self.rect.x = random.randrange(50, x - 70)
         self.rect.y = random.randrange(-100, -30)
@@ -434,7 +256,7 @@ class Imperia(pygame.sprite.Sprite):
             pass
 
     def update(self):
-        if virus == True:
+        if virus:
             self.rotate()
         self.rect.y += self.speedy_imp
         self.rect.x += self.speedx_imp
@@ -449,157 +271,6 @@ class Imperia(pygame.sprite.Sprite):
                 self.kill()
 
 
-class Inventar(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = inventar
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(inventar, (40, 180))
-        self.rect.bottom = 350
-        self.rect.centerx = 25
-
-
-class Drob(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 5
-        self.image = img_bullet_sh
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet_sh, (20, 40))
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -17
-
-    def update(self):
-        self.rect.y += self.speedy
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Drob2(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 5
-        self.image = img_bullet_sh
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet_sh, (20, 40))
-        self.image = pygame.transform.rotate(self.image, 30)
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -17
-        self.speedx = -11
-
-    def update(self):
-        self.rect.y += self.speedy
-        self.rect.x += self.speedx
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Drob3(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 5
-        self.image = img_bullet_sh
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet_sh, (20, 40))
-        self.image = pygame.transform.rotate(self.image, -30)
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -17
-        self.speedx = 11
-
-    def update(self):
-        self.rect.y += self.speedy
-        self.rect.x += self.speedx
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Drob4(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 5
-        self.image = img_bullet_sh
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet_sh, (20, 40))
-        self.image = pygame.transform.rotate(self.image, 15)
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -17
-        self.speedx = -5
-
-    def update(self):
-        self.rect.y += self.speedy
-        self.rect.x += self.speedx
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Drob5(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 5
-        self.image = img_bullet_sh
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet_sh, (20, 40))
-        self.image = pygame.transform.rotate(self.image, -15)
-        self.rect.bottom = y
-        self.rect.centerx = x
-        self.speedy = -17
-        self.speedx = 5
-
-    def update(self):
-        self.rect.y += self.speedy
-        self.rect.x += self.speedx
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Icon_sh(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = shotgun
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(shotgun, (40, 20))
-        self.image = pygame.transform.rotate(self.image, 36)
-        self.rect.bottom = 465
-        self.rect.centerx = 233
-
-
-class Icon_sh_big(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = shotgun
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(shotgun, (80, 40))
-        self.image = pygame.transform.rotate(self.image, 36)
-        self.rect.bottom = 438
-        self.rect.centerx = 215
-
-
-class Icon_ju(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = rifle
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(rifle, (42, 30))
-        self.image = pygame.transform.rotate(self.image, 36)
-        self.rect.bottom = 553
-        self.rect.centerx = 307
-
-
-class Icon_ju_big(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = rifle
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(rifle, (84, 60))
-        self.image = pygame.transform.rotate(self.image, 36)
-        self.rect.bottom = 520
-        self.rect.centerx = 285
-
-
 class Meteor(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -607,8 +278,6 @@ class Meteor(pygame.sprite.Sprite):
         self.image = self.image_orig.copy()
         self.rect = self.image.get_rect()
         self.radius = 25
-        if sprites == True:
-            pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
         self.rect.x = random.randrange(50, x - 70)
         self.rect.y = random.randrange(-100, -30)
         self.speedy = random.randrange(speed_enem//2+1+count_bosses//3, speed_enem*3+count_bosses//2)
@@ -667,94 +336,6 @@ class Heart(pygame.sprite.Sprite):
             self.rect.centerx = x
 
 
-class Explosion(pygame.sprite.Sprite):
-    def __init__(self, center, size):
-        pygame.sprite.Sprite.__init__(self)
-        self.size = size
-        self.image = explosion_anim[self.size][0]
-        self.rect = self.image.get_rect()
-        self.rect.center = center
-        self.frame = 0
-        self.last_update = pygame.time.get_ticks()
-        self.frame_rate = 50
-
-    def update(self):
-        now = pygame.time.get_ticks()
-        if now - self.last_update > self.frame_rate:
-            self.last_update = now
-            self.frame += 1
-            if self.frame == len(explosion_anim[self.size]):
-                self.kill()
-            else:
-                center = self.rect.center
-                self.image = explosion_anim[self.size][self.frame]
-                self.rect = self.image.get_rect()
-                self.rect.center = center
-
-
-class Explosion2(pygame.sprite.Sprite):
-    def __init__(self, center, size):
-        pygame.sprite.Sprite.__init__(self)
-        self.size = size
-        self.image = explosion_anim2[self.size][0]
-        self.rect = self.image.get_rect()
-        self.rect.center = center
-        self.frame = 0
-        self.last_update = pygame.time.get_ticks()
-        self.frame_rate = 50
-
-    def update(self):
-        now = pygame.time.get_ticks()
-        if now - self.last_update > self.frame_rate:
-            self.last_update = now
-            self.frame += 1
-            if self.frame == len(explosion_anim2[self.size]):
-                self.kill()
-            else:
-                center = self.rect.center
-                self.image = explosion_anim2[self.size][self.frame]
-                self.rect = self.image.get_rect()
-                self.rect.center = center
-
-
-class Health(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = health
-        self.image = pygame.transform.scale(health, (50, 50))
-        self.rect = self.image.get_rect()
-        self.radius = 30
-        if sprites == True:
-            pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
-        self.rect.x = random.randrange(100, x - 170)
-        self.rect.y = random.randrange(-100, -30)
-        self.speedy = 2
-
-    def update(self):
-        self.rect.y += self.speedy
-        if self.rect.top > y + 60:
-            self.kill()
-
-
-class Fly_sh(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.radius = 30
-        self.image = fly_sh
-        self.image = pygame.transform.scale(fly_sh, (70, 70))
-        self.rect = self.image.get_rect()
-        if sprites == True:
-            pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
-        self.rect.x = random.randrange(100, x - 170)
-        self.rect.y = random.randrange(-100, -30)
-        self.speedy = 2
-
-    def update(self):
-        self.rect.y += self.speedy
-        if self.rect.top > y + 60:
-            self.kill()
-
-
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)  # it should be here
@@ -762,7 +343,7 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(img_npc, (130, 150))
         self.rect = self.image.get_rect()
         self.radius = 40
-        if sprites == True:
+        if sprites:
             pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
         self.rect.centerx = x // 2
         self.rect.bottom = y // 2 + y // 3
@@ -820,8 +401,8 @@ class Player(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         if now - self.last_shot > self.shoot_time:
             self.last_shot = now
-            bullet = Bullet(self.rect.centerx + 12, self.rect.bottom - 87)
-            bullet2 = Bullet(self.rect.centerx + 23, self.rect.bottom - 87)
+            bullet = shoots.Bullet(self.rect.centerx + 12, self.rect.bottom - 87)
+            bullet2 = shoots.Bullet(self.rect.centerx + 23, self.rect.bottom - 87)
             all_sprites.add(bullet)
             bullets.add(bullet)
             all_sprites.add(bullet2)
@@ -835,63 +416,22 @@ class Player(pygame.sprite.Sprite):
         now_sh = pygame.time.get_ticks()
         if now_sh - self.last_shotgun > self.shotgun_time:
             self.last_shotgun = now_sh
-            drob = Drob(self.rect.centerx + 15, self.rect.bottom - 85)
-            drob2 = Drob2(self.rect.centerx - 5, self.rect.bottom - 85)
-            drob3 = Drob3(self.rect.centerx + 20, self.rect.bottom - 85)
-            drob4 = Drob4(self.rect.centerx + 3, self.rect.bottom - 85)
-            drob5 = Drob5(self.rect.centerx + 17, self.rect.bottom - 85)
-            shotgun_sound.play(0)
+            drob = shoots.Drob('drob', self.rect.centerx + 15, self.rect.bottom - 85)
             all_sprites.add(drob)
             drobs.add(drob)
-            all_sprites.add(drob2)
-            drobs.add(drob2)
-            all_sprites.add(drob3)
-            drobs.add(drob3)
-            all_sprites.add(drob4)
-            drobs.add(drob4)
-            all_sprites.add(drob5)
-            drobs.add(drob5)
-
-
-class Buttonpy(pygame.sprite.Sprite):
-    def __init__(self, x, y, width, height, monitor, text, function=None, image=button_notpress, image2=button_press):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = image
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.image = pygame.transform.scale(image, (width, height))
-        self.height = height
-        self.width = width
-        self.monitor = monitor
-        self.function = function
-        self.text = text
-        self.image2 = image2
-        self.image_orig = image
-
-    def update(self):
-        mouse = pygame.mouse.get_pos()
-        click = pygame.mouse.get_pressed()
-        if (self.rect.x < mouse[0] < self.rect.x + self.width) and (self.rect.y < mouse[1] < self.rect.y + self.height):
-            self.image = self.image2
-            self.image = pygame.transform.scale(self.image2, (self.width, self.height))
-            if click[0] == 1:
-                pygame.time.delay(200)
-                spacebar()
-                pygame.time.delay(200)
-                if self.function is not None:
-                    self.function()
-        else:
-            self.image = self.image_orig
-            self.image = pygame.transform.scale(self.image_orig, (self.width, self.height))
-
-    def change(self, x=None, y=None, width=None, heigth=None, text=None, function=None):
-        self.rect.x = x
-        self.rect.y = y
-        self.height = heigth
-        self.width = width
-        self.text = text
-        self.function = function
+            drob = shoots.Drob('drob2', self.rect.centerx - 5, self.rect.bottom - 85)
+            all_sprites.add(drob)
+            drobs.add(drob)
+            drob = shoots.Drob('drob3', self.rect.centerx + 20, self.rect.bottom - 85)
+            all_sprites.add(drob)
+            drobs.add(drob)
+            drob = shoots.Drob('drob4', self.rect.centerx + 3, self.rect.bottom - 85)
+            all_sprites.add(drob)
+            drobs.add(drob)
+            drob = shoots.Drob('drob5', self.rect.centerx + 17, self.rect.bottom - 85)
+            all_sprites.add(drob)
+            drobs.add(drob)
+            shotgun_sound.play(0)
 
 
 class Npc(pygame.sprite.Sprite):
@@ -901,7 +441,7 @@ class Npc(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(img_npc, (130, 150))
         self.rect = self.image.get_rect()
         self.radius = 40
-        if sprites == True:
+        if sprites:
             pygame.draw.circle(self.image, (0, 0, 0), self.rect.center, self.radius)
         self.rect.centerx = x // 2
         self.rect.bottom = y // 2 + y // 3
@@ -953,37 +493,13 @@ class Npc(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         if now - self.last_shot > self.shoot_time:
             self.last_shot = now
-            bullet = Bullet(self.rect.centerx + 12, self.rect.bottom - 87)
-            bullet2 = Bullet(self.rect.centerx + 23, self.rect.bottom - 87)
+            bullet = shoots.Bullet(self.rect.centerx + 12, self.rect.bottom - 87)
+            bullet2 = shoots.Bullet(self.rect.centerx + 23, self.rect.bottom - 87)
             all_sprites.add(bullet)
             bullets.add(bullet)
             all_sprites.add(bullet2)
             bullets.add(bullet2)
             laser_sound.play()
-
-    def shotgun(self):
-        global all_sprites
-        global drobs
-
-        now_sh = pygame.time.get_ticks()
-        if now_sh - self.last_shotgun > self.shotgun_time:
-            self.last_shotgun = now_sh
-            drob = Drob(self.rect.centerx + 15, self.rect.bottom - 85)
-            drob2 = Drob2(self.rect.centerx - 5, self.rect.bottom - 85)
-            drob3 = Drob3(self.rect.centerx + 20, self.rect.bottom - 85)
-            drob4 = Drob4(self.rect.centerx + 3, self.rect.bottom - 85)
-            drob5 = Drob5(self.rect.centerx + 17, self.rect.bottom - 85)
-            shotgun_sound.play(0)
-            all_sprites.add(drob)
-            drobs.add(drob)
-            all_sprites.add(drob2)
-            drobs.add(drob2)
-            all_sprites.add(drob3)
-            drobs.add(drob3)
-            all_sprites.add(drob4)
-            drobs.add(drob4)
-            all_sprites.add(drob5)
-            drobs.add(drob5)
 
 
 count2 = 1
@@ -1061,11 +577,11 @@ def game_without_meteors():
     buttons = pygame.sprite.Group()
 
     player = Player()
-    inv = Inventar()
-    shotgun = Icon_sh()
-    shotgun_big = Icon_sh_big()
-    rifle = Icon_ju()
-    rifle_big = Icon_ju_big()
+    inv = inventar.Inventar()
+    shotgun = icons.Icon_sh()
+    shotgun_big = icons.Icon_sh_big()
+    rifle = icons.Icon_ju()
+    rifle_big = icons.Icon_ju_big()
     heart1 = Heart(ful_heart, 165, 310)
     heart2 = Heart(ful_heart, 165 + 75, 310)
     heart3 = Heart(ful_heart, 165 + 150, 310)
@@ -1111,7 +627,7 @@ def game_without_meteors():
 
     ready.play()
     for i in [3, 2, 1, 0]:
-        if sprites == True:
+        if sprites:
             screen.blit(background4, background4_rect)
         else:
             screen.blit(random_background, background_rect)
@@ -1142,9 +658,9 @@ def game_without_meteors():
                     pygame.mixer.music.pause()
                     pause_snd.play(-1)
 
-                    btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                    btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                    btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                    btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                    btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                    btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                     buttons.add(btn_quit)
                     buttons.add(btn_menu)
                     buttons.add(btn_start)
@@ -1225,14 +741,14 @@ def game_without_meteors():
 
         if random.random() > 0.999:
             if not powerups:
-                heal = Health()
+                heal = support.Health()
                 all_sprites.add(heal)
                 powerups.add(heal)
 
         if score >= 50:
             if random.random() > 0.9:
                 if not shotgun_fly and equip != 1:
-                    sh_fly = Fly_sh()
+                    sh_fly = support.Fly_sh()
                     all_sprites.add(sh_fly)
                     shotgun_fly.add(sh_fly)
 
@@ -1262,7 +778,7 @@ def game_without_meteors():
             for i in boom_bullet_boss:
                 if not godmode:
                     hits += 1
-                expl = Explosion2(i.rect.center, 'sm')
+                expl = explosions.Explosion(i.rect.center, 'sm', 2)
                 all_sprites.add(expl)
 
             for i in boom_boss:
@@ -1286,15 +802,15 @@ def game_without_meteors():
                 bosses = pygame.sprite.Group()
                 for i in drobs_boss:
                     if random.randint(1, 2) == 1:
-                        expl = Explosion(i.rect.center, 'sm')
+                        expl = explosions.Explosion(i.rect.center, 'sm')
                         all_sprites.add(expl)
                     else:
-                        expl = Explosion2(i.rect.center, 'sm')
+                        expl = explosions.Explosion(i.rect.center, 'sm', 2)
                         all_sprites.add(expl)
                     i.kill()
                 score += 15
                 boom_snd.play()
-                expl = Explosion(boss.rect.center, 'hu')
+                expl = explosions.Explosion(boss.rect.center, 'hu')
                 all_sprites.add(expl)
                 count_bosses += 3
                 for _ in range(25):
@@ -1317,10 +833,10 @@ def game_without_meteors():
             score += 1
             boom_snd.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit.rect.center, 'lg')
+                expl = explosions.Explosion(hit.rect.center, 'lg')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit.rect.center, 'lg')
+                expl = explosions.Explosion(hit.rect.center, 'lg', 2)
                 all_sprites.add(expl)
             if not bosses:
                 hit.rect.x = random.randrange(50, x - 70)
@@ -1335,10 +851,10 @@ def game_without_meteors():
             score += 1
             boom_snd.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit2.rect.center, 'lg')
+                expl = explosions.Explosion(hit2.rect.center, 'lg')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit2.rect.center, 'lg')
+                expl = explosions.Explosion(hit2.rect.center, 'lg', 2)
                 all_sprites.add(expl)
             if not bosses:
                 hit2.rect.x = random.randrange(50, x - 70)
@@ -1354,10 +870,10 @@ def game_without_meteors():
             if not godmode:
                 hits += 2
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit4.rect.center, 'sm')
+                expl = explosions.Explosion(hit4.rect.center, 'sm')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit4.rect.center, 'sm')
+                expl = explosions.Explosion(hit4.rect.center, 'sm', 2)
                 all_sprites.add(expl)
             if not bosses:
                 hit4.rect.x = random.randrange(50, x - 70)
@@ -1368,17 +884,17 @@ def game_without_meteors():
             else:
                 hit4.kill()
 
-        if gameover == True:
+        if gameover:
             current_score()
             deathes()
 
             for i in vaders_group:
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
                     all_sprites.add(expl)
                 screen.blit(gameover_bg, gameover_rect)
                 all_sprites.update()
@@ -1395,9 +911,9 @@ def game_without_meteors():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -1428,10 +944,10 @@ def game_without_meteors():
                 all_sprites.update()
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(player.rect.center, 'hu')
+                    expl = explosions.Explosion(player.rect.center, 'hu')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(player.rect.center, 'hu')
+                    expl = explosions.Explosion(player.rect.center, 'hu', 2)
                     all_sprites.add(expl)
                 all_sprites.update()
                 screen.blit(gameover_bg, gameover_rect)
@@ -1449,9 +965,9 @@ def game_without_meteors():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -1481,10 +997,10 @@ def game_without_meteors():
                 screen.blit(gameover_bg, gameover_rect)
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(i.rect.center, 'hu')
+                    expl = explosions.Explosion(i.rect.center, 'hu')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(i.rect.center, 'hu')
+                    expl = explosions.Explosion(i.rect.center, 'hu', 2)
                     all_sprites.add(expl)
                 all_sprites.update()
                 all_sprites.remove(i)
@@ -1500,9 +1016,9 @@ def game_without_meteors():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -1533,10 +1049,10 @@ def game_without_meteors():
                 screen.blit(gameover_bg, gameover_rect)
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
                     all_sprites.add(expl)
                 all_sprites.update()
                 all_sprites.remove(i)
@@ -1552,9 +1068,9 @@ def game_without_meteors():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -1589,9 +1105,9 @@ def game_without_meteors():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -1618,6 +1134,7 @@ def game_without_meteors():
                             pygame.mixer.music.unpause()
                         elif event.key == pygame.K_TAB:
                             gameover = False
+
                 screen.blit(gameover_bg, gameover_rect)
                 draw_text(screen, 'Нажмите "TAB", чтобы продолжить', x // 30, x // 2, y - 300)
                 draw_text(screen, 'Счёт:', 30, x // 2, 10)
@@ -1627,10 +1144,9 @@ def game_without_meteors():
                 all_sprites.update()
                 all_sprites.draw(screen)
                 pygame.display.flip()
-############################################
+
             pygame.mixer.music.stop()
             pygame.mixer.music.play(-1)
-            #####################
             random_background = random.choice(background_images)
 
             all_sprites = pygame.sprite.Group()
@@ -1644,11 +1160,11 @@ def game_without_meteors():
             hearts = pygame.sprite.Group()
 
             player = Player()
-            inv = Inventar()
-            shotgun = Icon_sh()
-            shotgun_big = Icon_sh_big()
-            rifle = Icon_ju()
-            rifle_big = Icon_ju_big()
+            inv = inventar.Inventar()
+            shotgun = icons.Icon_sh()
+            shotgun_big = icons.Icon_sh_big()
+            rifle = icons.Icon_ju()
+            rifle_big = icons.Icon_ju_big()
             heart1 = Heart(ful_heart, 165, 310)
             heart2 = Heart(ful_heart, 165 + 75, 310)
             heart3 = Heart(ful_heart, 165 + 150, 310)
@@ -1693,7 +1209,7 @@ def game_without_meteors():
 
             ready.play()
             for i in [3, 2, 1, 0]:
-                if sprites == True:
+                if sprites:
                     screen.blit(background4, background4_rect)
                 else:
                     screen.blit(random_background, background_rect)
@@ -1755,7 +1271,7 @@ def game_without_meteors():
             heart1.change(non_heart, 165, 310)
             gameover = True
 
-        if sprites == True:
+        if sprites:
             screen.blit(background4, background4_rect)
         else:
             screen.blit(random_background, background_rect)
@@ -1832,11 +1348,11 @@ def game():
     buttons = pygame.sprite.Group()
 
     player = Player()
-    inv = Inventar()
-    shotgun = Icon_sh()
-    shotgun_big = Icon_sh_big()
-    rifle = Icon_ju()
-    rifle_big = Icon_ju_big()
+    inv = inventar.Inventar()
+    shotgun = icons.Icon_sh()
+    shotgun_big = icons.Icon_sh_big()
+    rifle = icons.Icon_ju()
+    rifle_big = icons.Icon_ju_big()
     heart1 = Heart(ful_heart, 165, 310)
     heart2 = Heart(ful_heart, 165 + 75, 310)
     heart3 = Heart(ful_heart, 165 + 150, 310)
@@ -1888,7 +1404,7 @@ def game():
 
     ready.play()
     for i in [3, 2, 1, 0]:
-        if sprites == True:
+        if sprites:
             screen.blit(background4, background4_rect)
         else:
             screen.blit(random_background, background_rect)
@@ -1919,9 +1435,9 @@ def game():
                     pygame.mixer.music.pause()
                     pause_snd.play(-1)
 
-                    btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                    btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                    btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                    btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                    btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                    btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                     buttons.add(btn_quit)
                     buttons.add(btn_menu)
                     buttons.add(btn_start)
@@ -1996,20 +1512,21 @@ def game():
             last_boss = nowboss
             health_boss += 10
             health_boss2 = health_boss
-            boss = Boss_hard()
+            boss = Boss()
+            boss.hard()
             all_sprites.add(boss)
             bosses.add(boss)
 
         if random.random() > 0.9995:
             if not powerups:
-                heal = Health()
+                heal = support.Health()
                 all_sprites.add(heal)
                 powerups.add(heal)
 
         if score >= 50:
             if random.random() > 0.99:
                 if not shotgun_fly and equip != 1:
-                    sh_fly = Fly_sh()
+                    sh_fly = support.Fly_sh()
                     all_sprites.add(sh_fly)
                     shotgun_fly.add(sh_fly)
 
@@ -2040,7 +1557,7 @@ def game():
             for i in boom_bullet_boss:
                 if not godmode:
                     hits += 1
-                expl = Explosion2(i.rect.center, 'sm')
+                expl = explosions.Explosion(i.rect.center, 'sm', 2)
                 all_sprites.add(expl)
 
             for i in boom_boss:
@@ -2064,15 +1581,15 @@ def game():
                 bosses = pygame.sprite.Group()
                 for i in drobs_boss:
                     if random.randint(1, 2) == 1:
-                        expl = Explosion(i.rect.center, 'sm')
+                        expl = explosions.Explosion(i.rect.center, 'sm')
                         all_sprites.add(expl)
                     else:
-                        expl = Explosion2(i.rect.center, 'sm')
+                        expl = explosions.Explosion(i.rect.center, 'sm', 2)
                         all_sprites.add(expl)
                     i.kill()
                 score += 50
                 boom_snd.play()
-                expl = Explosion(boss.rect.center, 'hu')
+                expl = explosions.Explosion(boss.rect.center, 'hu')
                 all_sprites.add(expl)
                 count_bosses += 3
                 for _ in range(enemy_vaders):
@@ -2100,10 +1617,10 @@ def game():
             if not godmode:
                 hits += 1
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit3.rect.center, 'sm')
+                expl = explosions.Explosion(hit3.rect.center, 'sm')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit3.rect.center, 'sm')
+                expl = explosions.Explosion(hit3.rect.center, 'sm', 2)
                 all_sprites.add(expl)
             hit3.rect.x = random.randrange(50, x - 70)
             hit3.rect.y = random.randrange(-100, -30)
@@ -2114,10 +1631,10 @@ def game():
             score += 1
             boom_snd.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit.rect.center, 'lg')
+                expl = explosions.Explosion(hit.rect.center, 'lg')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit.rect.center, 'lg')
+                expl = explosions.Explosion(hit.rect.center, 'lg', 2)
                 all_sprites.add(expl)
             if not bosses:
                 hit.rect.x = random.randrange(50, x - 70)
@@ -2132,10 +1649,10 @@ def game():
             score += 1
             boom_snd.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit2.rect.center, 'lg')
+                expl = explosions.Explosion(hit2.rect.center, 'lg')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit2.rect.center, 'lg')
+                expl = explosions.Explosion(hit2.rect.center, 'lg', 2)
                 all_sprites.add(expl)
             if not bosses:
                 hit2.rect.x = random.randrange(50, x - 70)
@@ -2151,10 +1668,10 @@ def game():
             if not godmode:
                 hits += 2
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit4.rect.center, 'sm')
+                expl = explosions.Explosion(hit4.rect.center, 'sm')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit4.rect.center, 'sm')
+                expl = explosions.Explosion(hit4.rect.center, 'sm', 2)
                 all_sprites.add(expl)
             if not bosses:
                 hit4.rect.x = random.randrange(50, x - 70)
@@ -2165,17 +1682,17 @@ def game():
             else:
                 hit4.kill()
 
-        if gameover == True:
+        if gameover:
             current_score()
             deathes()
 
             for i in vaders_group:
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
                     all_sprites.add(expl)
                 screen.blit(gameover_bg, gameover_rect)
                 all_sprites.update()
@@ -2192,9 +1709,9 @@ def game():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -2225,10 +1742,10 @@ def game():
                 all_sprites.update()
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(player.rect.center, 'hu')
+                    expl = explosions.Explosion(player.rect.center, 'hu')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(player.rect.center, 'hu')
+                    expl = explosions.Explosion(player.rect.center, 'hu', 2)
                     all_sprites.add(expl)
                 all_sprites.update()
                 screen.blit(gameover_bg, gameover_rect)
@@ -2246,9 +1763,9 @@ def game():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -2276,10 +1793,10 @@ def game():
             for i in meteors:
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
                     all_sprites.add(expl)
                 screen.blit(gameover_bg, gameover_rect)
                 all_sprites.update()
@@ -2296,9 +1813,9 @@ def game():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -2329,10 +1846,10 @@ def game():
                     screen.blit(gameover_bg, gameover_rect)
                     boom_snd.play()
                     if random.randint(1, 2) == 1:
-                        expl = Explosion(i.rect.center, 'hu')
+                        expl = explosions.Explosion(i.rect.center, 'hu')
                         all_sprites.add(expl)
                     else:
-                        expl = Explosion2(i.rect.center, 'hu')
+                        expl = explosions.Explosion(i.rect.center, 'hu', 2)
                         all_sprites.add(expl)
                     all_sprites.update()
                     all_sprites.remove(i)
@@ -2348,9 +1865,9 @@ def game():
                                 pygame.mixer.music.pause()
                                 pause_snd.play(-1)
 
-                                btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                                btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                                btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                                btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                                btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                                btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                                 buttons.add(btn_quit)
                                 buttons.add(btn_menu)
                                 buttons.add(btn_start)
@@ -2381,10 +1898,10 @@ def game():
                 screen.blit(gameover_bg, gameover_rect)
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
                     all_sprites.add(expl)
                 all_sprites.update()
                 all_sprites.remove(i)
@@ -2400,9 +1917,9 @@ def game():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -2438,9 +1955,9 @@ def game():
                                 pygame.mixer.music.pause()
                                 pause_snd.play(-1)
 
-                                btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                                btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                                btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                                btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                                btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                                btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                                 buttons.add(btn_quit)
                                 buttons.add(btn_menu)
                                 buttons.add(btn_start)
@@ -2467,6 +1984,7 @@ def game():
                                 pygame.mixer.music.unpause()
                         elif event.key == pygame.K_TAB:
                             gameover = False
+
                 screen.blit(gameover_bg, gameover_rect)
                 draw_text(screen, 'Нажмите "TAB", чтобы продолжить', x // 30, x // 2, y - 300)
                 draw_text(screen, 'Счёт:', 30, x // 2, 10)
@@ -2495,11 +2013,11 @@ def game():
             buttons = pygame.sprite.Group()
 
             player = Player()
-            inv = Inventar()
-            shotgun = Icon_sh()
-            shotgun_big = Icon_sh_big()
-            rifle = Icon_ju()
-            rifle_big = Icon_ju_big()
+            inv = inventar.Inventar()
+            shotgun = icons.Icon_sh()
+            shotgun_big = icons.Icon_sh_big()
+            rifle = icons.Icon_ju()
+            rifle_big = icons.Icon_ju_big()
             heart1 = Heart(ful_heart, 165, 310)
             heart2 = Heart(ful_heart, 165 + 75, 310)
             heart3 = Heart(ful_heart, 165 + 150, 310)
@@ -2525,8 +2043,6 @@ def game():
             health_boss2 = health_boss
             enemy_vaders = 23
             enemy_meteors = 10
-            boss_time = 50000
-            last_boss = pygame.time.get_ticks()
             waiting = False
 
             all_sprites.add(player)
@@ -2551,7 +2067,7 @@ def game():
 
             ready.play()
             for i in [3, 2, 1, 0]:
-                if sprites == True:
+                if sprites:
                     screen.blit(background4, background4_rect)
                 else:
                     screen.blit(random_background, background_rect)
@@ -2613,7 +2129,7 @@ def game():
             heart1.change(non_heart, 165, 310)
             gameover = True
 
-        if sprites == True:
+        if sprites:
             screen.blit(background4, background4_rect)
         else:
             screen.blit(random_background, background_rect)
@@ -2677,11 +2193,11 @@ def kill_or_die():
     buttons = pygame.sprite.Group()
 
     player = Player()
-    inv = Inventar()
-    shotgun = Icon_sh()
-    shotgun_big = Icon_sh_big()
-    rifle = Icon_ju()
-    rifle_big = Icon_ju_big()
+    inv = inventar.Inventar()
+    shotgun = icons.Icon_sh()
+    shotgun_big = icons.Icon_sh_big()
+    rifle = icons.Icon_ju()
+    rifle_big = icons.Icon_ju_big()
     all_sprites.add(player)
     for i in range(28):
         imp = Imperia()
@@ -2690,7 +2206,7 @@ def kill_or_die():
     sh = 0
     ju = 1
     sh_fly = False
-    score = 1400
+    score = 0
     a = True
     count = 700
     count_loose = 0
@@ -2704,7 +2220,7 @@ def kill_or_die():
 
     ready.play()
     for i in [3, 2, 1, 0]:
-        if sprites == True:
+        if sprites:
             screen.blit(background4, background4_rect)
         else:
             screen.blit(random_background, background_rect)
@@ -2741,9 +2257,9 @@ def kill_or_die():
                     pygame.mixer.music.pause()
                     pause_snd.play(-1)
 
-                    btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                    btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                    btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                    btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                    btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                    btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                     buttons.add(btn_quit)
                     buttons.add(btn_menu)
                     buttons.add(btn_start)
@@ -2821,17 +2337,17 @@ def kill_or_die():
         draw_text(screen, 'Таймер: ' + str(count), 30, 150, 20)
         pygame.display.flip()
 
-        if gameover == True:
+        if gameover:
             current_score()
             deathes()
 
             for i in vaders_group:
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(i.rect.center, 'lg')
+                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
                     all_sprites.add(expl)
                 screen.blit(gameover_bg, gameover_rect)
                 all_sprites.update()
@@ -2852,9 +2368,9 @@ def kill_or_die():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -2885,10 +2401,10 @@ def kill_or_die():
                 all_sprites.update()
                 boom_snd.play()
                 if random.randint(1, 2) == 1:
-                    expl = Explosion(player.rect.center, 'hu')
+                    expl = explosions.Explosion(player.rect.center, 'hu')
                     all_sprites.add(expl)
                 else:
-                    expl = Explosion2(player.rect.center, 'hu')
+                    expl = explosions.Explosion(player.rect.center, 'hu', 2)
                     all_sprites.add(expl)
                 all_sprites.update()
                 screen.blit(gameover_bg, gameover_rect)
@@ -2910,9 +2426,9 @@ def kill_or_die():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -2949,9 +2465,9 @@ def kill_or_die():
                             pygame.mixer.music.pause()
                             pause_snd.play(-1)
 
-                            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-                            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
                             buttons.add(btn_quit)
                             buttons.add(btn_menu)
                             buttons.add(btn_start)
@@ -2978,6 +2494,7 @@ def kill_or_die():
                             pygame.mixer.music.unpause()
                         elif event.key == pygame.K_TAB:
                             gameover = False
+
                 screen.blit(gameover_bg, gameover_rect)
                 draw_text(screen, 'Нажмите "TAB", чтобы продолжить', x // 30, x // 2, y - 300)
                 all_sprites.update()
@@ -3000,11 +2517,11 @@ def kill_or_die():
             buttons = pygame.sprite.Group()
 
             player = Player()
-            inv = Inventar()
-            shotgun = Icon_sh()
-            shotgun_big = Icon_sh_big()
-            rifle = Icon_ju()
-            rifle_big = Icon_ju_big()
+            inv = inventar.Inventar()
+            shotgun = icons.Icon_sh()
+            shotgun_big = icons.Icon_sh_big()
+            rifle = icons.Icon_ju()
+            rifle_big = icons.Icon_ju_big()
             all_sprites.add(player)
             for i in range(28):
                 imp = Imperia()
@@ -3027,7 +2544,7 @@ def kill_or_die():
 
             ready.play()
             for i in [3, 2, 1, 0]:
-                if sprites == True:
+                if sprites:
                     screen.blit(background4, background4_rect)
                 else:
                     screen.blit(random_background, background_rect)
@@ -3069,9 +2586,9 @@ def kill_or_die():
 
             pygame.mixer.music.pause()
 
-            btn_quit = Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-            btn_menu = Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
-            btn_start = Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Рестарт', pause)
+            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', menushka)
+            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Рестарт', pause)
             buttons.add(btn_quit)
             buttons.add(btn_menu)
             buttons.add(btn_start)
@@ -3105,11 +2622,11 @@ def kill_or_die():
             buttons = pygame.sprite.Group()
 
             player = Player()
-            inv = Inventar()
-            shotgun = Icon_sh()
-            shotgun_big = Icon_sh_big()
-            rifle = Icon_ju()
-            rifle_big = Icon_ju_big()
+            inv = inventar.Inventar()
+            shotgun = icons.Icon_sh()
+            shotgun_big = icons.Icon_sh_big()
+            rifle = icons.Icon_ju()
+            rifle_big = icons.Icon_ju_big()
             all_sprites.add(player)
             for i in range(28):
                 imp = Imperia()
@@ -3132,7 +2649,7 @@ def kill_or_die():
 
             ready.play()
             for i in [3, 2, 1, 0]:
-                if sprites == True:
+                if sprites:
                     screen.blit(background4, background4_rect)
                 else:
                     screen.blit(random_background, background_rect)
@@ -3157,7 +2674,7 @@ def kill_or_die():
         if score >= 50:
             if random.random() > 0.99:
                 if not shotgun_fly and equip != 1:
-                    sh_fly = Fly_sh()
+                    sh_fly = support.Fly_sh()
                     all_sprites.add(sh_fly)
                     shotgun_fly.add(sh_fly)
 
@@ -3181,10 +2698,10 @@ def kill_or_die():
             score += 1
             boom_snd.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit.rect.center, 'lg')
+                expl = explosions.Explosion(hit.rect.center, 'lg')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit.rect.center, 'lg')
+                expl = explosions.Explosion(hit.rect.center, 'lg', 2)
                 all_sprites.add(expl)
             hit.rect.x = random.randrange(50, x - 70)
             hit.rect.y = random.randrange(-100, -30)
@@ -3196,10 +2713,10 @@ def kill_or_die():
             score += 1
             boom_snd.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit2.rect.center, 'lg')
+                expl = explosions.Explosion(hit2.rect.center, 'lg')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit2.rect.center, 'lg')
+                expl = explosions.Explosion(hit2.rect.center, 'lg', 2)
                 all_sprites.add(expl)
             hit2.rect.x = random.randrange(50, x - 70)
             hit2.rect.y = random.randrange(-100, -30)
@@ -3210,10 +2727,10 @@ def kill_or_die():
         for hit4 in boom:
             metal.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit4.rect.center, 'sm')
+                expl = explosions.Explosion(hit4.rect.center, 'sm')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit4.rect.center, 'sm')
+                expl = explosions.Explosion(hit4.rect.center, 'sm', 2)
                 all_sprites.add(expl)
             hit4.rect.x = random.randrange(50, x - 70)
             hit4.rect.y = random.randrange(-100, -30)
@@ -3221,7 +2738,7 @@ def kill_or_die():
             hit4.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
             hit4.rot_speed = random.randrange(-20, 20)
 
-        if sprites == True:
+        if sprites:
             screen.blit(background4, background4_rect)
         else:
             screen.blit(random_background, background_rect)
@@ -3243,25 +2760,14 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-def unlock():
-    global s
-    with open('score.txt', 'r') as file:
-        lines = file.readlines()
-        if lines:
-            list = lines[0].split(' ')
-            for i in list:
-                if i != '':
-                    s += int(i)
-
-
 def current_score():
-    with open('score.txt', 'a') as file:
+    with open('scriptspy\score.txt', 'a') as file:
         file.write(str(score) + ' ')
 
 
 def best_score(surf, size, x, y):
     global best_count
-    with open('score.txt', 'r') as file:
+    with open('scriptspy\score.txt', 'r') as file:
         lines = file.readlines()
         if lines:
             list = lines[0].split(' ')
@@ -3280,11 +2786,6 @@ def best_score(surf, size, x, y):
 
 def spacebar():
     spacebar_snd.play()
-
-
-def break_pause():
-    global tk
-    tk.destroy()
 
 
 def super_break():
@@ -3388,24 +2889,22 @@ def control():
     spacebar()
     if key_btn == 1:
         messagebox.showinfo('Меню игры STAR WARS - THE JOKE',
-                            'УПРАВЛЕНИЕ: \n W - вверх \n S - вниз \n A - влево \n D - вправо \n ПРОБЕЛ - стрелять \n "1" - переключить на первое оружие \n "2" - переключить на второе оружие \n "ESC" - пауза \n Общий счёт в игре: ' + str(
-                                s))
+                            'УПРАВЛЕНИЕ: \n W - вверх \n S - вниз \n A - влево \n D - вправо \n ПРОБЕЛ - стрелять \n "1" - переключить на первое оружие \n "2" - переключить на второе оружие \n "ESC" - пауза')
     elif mouse_btn == 1:
         messagebox.showinfo('Меню игры STAR WARS - THE JOKE',
-                            'УПРАВЛЕНИЕ: \n Передвижение мышкой \n ЛЕВАЯ кнопка мыши - стрелять \n Переключать оружия КОЛЁСИКОМ мыши \n "ESC" - поставить / убрать паузу\n Общий счёт в игре: ' + str(
-                                s))
+                            'УПРАВЛЕНИЕ: \n Передвижение мышкой \n ЛЕВАЯ кнопка мыши - стрелять \n Переключать оружия КОЛЁСИКОМ мыши \n "ESC" - поставить / убрать паузу')
     return
 
 
 def deathes():
-    with open('deathes.txt', 'a') as file:
+    with open('scriptspy\deathes.txt', 'a') as file:
         file.write('1 ')
 
 
 def success():
     global gameovers
     for_file = []
-    with open('deathes.txt', 'r') as file:
+    with open('scriptspy\deathes.txt', 'r') as file:
         lines = file.readlines()
         if lines:
             list = lines[0].split(' ')
@@ -3537,7 +3036,7 @@ def settings():
 
     canvas.create_image(x//2, y//2-25, image=img_ram)
 
-    text = canvas.create_text(270, 20, font=("Comic Sans MS", 15), text="Минимальная скорость врагов(по умолчанию 8)", fill="#dceca4")
+    text = canvas.create_text(270, 20, font=("Comic Sans MS", 15), text="Минимальная скорость врагов(по умолчанию 4)", fill="#dceca4")
     scale1 = Scale(canvas, orient=HORIZONTAL, length=700, from_=1, to=25, tickinterval=1, resolution=1, bg='black', fg='#dceca4')
     scale1.place(x=0, y=35)
     canvas.create_image(17, 20, image=img_option2)
@@ -3672,9 +3171,9 @@ def menushka():
 
     npc = Npc()
 
-    btn_quit = Buttonpy(x // 4, y - 120, 170, 70, screen, 'Выход', super_break)
-    btn_start = Buttonpy(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, screen, 'Старт', start)
-    btn_option = Buttonpy(btn_quit.rect.x + btn_quit.width + btn_start.width, y - 120, 190, 70, screen, 'Опции', settings)
+    btn_quit = button.Buttonpy(x // 4, y - 120, 170, 70, screen, 'Выход', super_break)
+    btn_start = button.Buttonpy(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, screen, 'Старт', start)
+    btn_option = button.Buttonpy(btn_quit.rect.x + btn_quit.width + btn_start.width, y - 120, 190, 70, screen, 'Опции', settings)
 
     all_sprites.add(npc)
 
@@ -3706,10 +3205,10 @@ def menushka():
                     for i in vaders_group:
                         boom_snd.play()
                         if random.randint(1, 2) == 1:
-                            expl = Explosion(i.rect.center, 'lg')
+                            expl = explosions.Explosion(i.rect.center, 'lg')
                             all_sprites.add(expl)
                         else:
-                            expl = Explosion2(i.rect.center, 'lg')
+                            expl = explosions.Explosion(i.rect.center, 'lg', 2)
                             all_sprites.add(expl)
                         i.rect.x = random.randrange(50, x - 70)
                         i.rect.y = random.randrange(-100, -30)
@@ -3722,10 +3221,10 @@ def menushka():
                     bullets = pygame.sprite.Group()
                     npc.kill()
                     if random.randint(1, 2) == 1:
-                        expl = Explosion(npc.rect.center, 'hu')
+                        expl = explosions.Explosion(npc.rect.center, 'hu')
                         all_sprites.add(expl)
                     else:
-                        expl = Explosion2(npc.rect.center, 'hu')
+                        expl = explosions.Explosion(npc.rect.center, 'hu', 2)
                         all_sprites.add(expl)
                     npc = Npc()
                     all_sprites.add(npc)
@@ -3736,10 +3235,10 @@ def menushka():
         for hit in boom_b:
             boom_snd.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit.rect.center, 'lg')
+                expl = explosions.Explosion(hit.rect.center, 'lg')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit.rect.center, 'lg')
+                expl = explosions.Explosion(hit.rect.center, 'lg', 2)
                 all_sprites.add(expl)
             hit.rect.x = random.randrange(50, x - 70)
             hit.rect.y = random.randrange(-100, -30)
@@ -3750,10 +3249,10 @@ def menushka():
         for hit4 in boom:
             metal.play()
             if random.randint(1, 2) == 1:
-                expl = Explosion(hit4.rect.center, 'sm')
+                expl = explosions.Explosion(hit4.rect.center, 'sm')
                 all_sprites.add(expl)
             else:
-                expl = Explosion2(hit4.rect.center, 'sm')
+                expl = explosions.Explosion(hit4.rect.center, 'sm', 2)
                 all_sprites.add(expl)
             hit4.rect.x = random.randrange(50, x - 70)
             hit4.rect.y = random.randrange(-100, -30)
@@ -3761,7 +3260,7 @@ def menushka():
             hit.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
             hit4.rot_speed = random.randrange(-20, 20)
 
-        if sprites == True:
+        if sprites:
             screen.blit(background4, background4_rect)
         else:
             screen.blit(random_background, background_rect)
