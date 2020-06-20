@@ -26,6 +26,9 @@ button_notpress = pygame.image.load(os.path.join(img_folder, 'button_notpress.pn
 img_death = pygame.image.load(os.path.join(img_folder, 'skull.png'))
 img_boss_virus = pygame.image.load(os.path.join(img_folder, 'boss_virus.png'))
 boss = pygame.image.load(os.path.join(img_folder, 'boss_1.png'))
+inventar = pygame.image.load(os.path.join(img_folder, 'invent.jpg'))
+shotgun = pygame.image.load(os.path.join(img_folder, 'shotgun.png'))
+rifle = pygame.image.load(os.path.join(img_folder, 'rifle.png'))
 
 laser_sound = pygame.mixer.Sound(os.path.join(snd_folder, 'laser.wav'))
 laser_sound.set_volume(0.05)
@@ -54,10 +57,8 @@ putin1 = Image.open(os.path.join(img_folder, 'putin.png'))
 putin1 = putin1.resize((70, 80), Image.ANTIALIAS)
 virus1 = Image.open(os.path.join(img_folder, 'virus.png'))
 virus1 = virus1.resize((80, 105), Image.ANTIALIAS)
-img2 = Image.open(os.path.join(img_folder, 'vader.png'))
-img2 = img2.resize((75, 75), Image.ANTIALIAS)
-img3 = Image.open(os.path.join(img_folder, 'option.png'))
-img3 = img3.resize((45, 45), Image.ANTIALIAS)
+img_vader_tk = Image.open(os.path.join(img_folder, 'vader.png'))
+img_vader_tk = img_vader_tk.resize((75, 75), Image.ANTIALIAS)
 img_option = Image.open(os.path.join(img_folder, 'option.png'))
 img_option = img_option.resize((35, 35), Image.ANTIALIAS)
 img_key = Image.open(os.path.join(img_folder, 'keyb.jpeg'))
@@ -82,3 +83,31 @@ reload_sounds = []
 reload_list = ['reload0.wav', 'reload1.wav', 'reload2.wav']
 for snd in reload_list:
     reload_sounds.append(pygame.mixer.Sound(os.path.join(snd_folder, snd)))
+
+explosion_anim = {}
+explosion_anim['lg'] = []
+explosion_anim['sm'] = []
+explosion_anim['hu'] = []
+for i in range(8):
+    filename = 'regularExplosion0{}.png'.format(i)
+    img = pygame.image.load(os.path.join(img_folder, filename))
+    img_hu = pygame.transform.scale(img, (300, 280))
+    explosion_anim['hu'].append(img_hu)
+    img_lg = pygame.transform.scale(img, (145, 125))
+    explosion_anim['lg'].append(img_lg)
+    img_sm = pygame.transform.scale(img, (50, 50))
+    explosion_anim['sm'].append(img_sm)
+
+explosion_anim2 = {}
+explosion_anim2['lg'] = []
+explosion_anim2['sm'] = []
+explosion_anim2['hu'] = []
+for i in range(12):
+    filename2 = 'Explosion0{}.png'.format(i)
+    img2 = pygame.image.load(os.path.join(img_folder, filename2))
+    img_hu2 = pygame.transform.scale(img2, (300, 280))
+    explosion_anim2['hu'].append(img_hu2)
+    img_lg2 = pygame.transform.scale(img2, (145, 125))
+    explosion_anim2['lg'].append(img_lg2)
+    img_sm2 = pygame.transform.scale(img2, (70, 55))
+    explosion_anim2['sm'].append(img_sm2)
