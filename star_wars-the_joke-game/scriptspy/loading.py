@@ -1,6 +1,7 @@
 import pygame
 import os
 from PIL import ImageTk, Image
+from scriptspy import system_size
 
 pygame.init()
 pygame.mixer.init()
@@ -69,6 +70,8 @@ img_skull = Image.open(os.path.join(img_folder, 'skull.png'))
 img_skull = img_skull.resize((55, 70), Image.ANTIALIAS)
 img_skull2 = Image.open(os.path.join(img_folder, 'skull.png'))
 img_skull2 = img_skull2.resize((65, 80), Image.ANTIALIAS)
+img_ram = Image.open(os.path.join(img_folder, 'ram.jpg'))
+img_ram = img_ram.resize((system_size.x, system_size.y), Image.ANTIALIAS)
 
 vader_images = []
 vader_list = ['vader.png', 'vader2.png', 'vader3.png']

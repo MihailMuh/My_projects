@@ -7,7 +7,7 @@ import os
 import sys
 from PIL import ImageTk, Image
 import time
-from scriptspy import inventar, icons, support, button, explosions, functions, loading, shoots, character
+from scriptspy import inventar, icons, support, button, explosions, functions, loading, shoots, character, heart, boss_game, opponents, meteor, achievment
 
 pygame.init()
 pygame.mixer.init()
@@ -15,14 +15,6 @@ pygame.mixer.set_num_channels(5000)
 
 x = 1370
 y = 800
-
-white = ((255, 255, 255))
-blue = ((0, 0, 255))
-green = ((0, 255, 0))
-red = ((255, 0, 0))
-black = ((0, 0, 0))
-orange = ((255, 100, 10))
-yellow = ((255, 255, 0))
 
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, 'scriptspy\images')
@@ -40,7 +32,7 @@ godmode = False
 FPS = 25
 health_boss = 30
 sprites = False
-mob_b = False
+jelly = False
 putin = False
 virus = False
 vaders = True
@@ -54,204 +46,7 @@ sh = 0
 ju = 1
 equip = 0
 speed_enem = 4
-gameovers = 0
 max_score = 0
-
-
-class Boss(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 150
-        if mob_b:
-            self.image = loading.img_vader4
-            self.image = pygame.transform.scale(loading.img_vader4, (260, 200))
-        elif putin:
-            self.radius = 160
-            self.image = loading.img_putin
-            self.image = pygame.transform.scale(loading.img_putin, (200, 220))
-            self.image.set_colorkey((0, 0, 0))
-        elif virus:
-            self.image = loading.img_boss_virus
-            self.image = pygame.transform.scale(loading.img_boss_virus, (250, 250))
-        elif vaders:
-            self.image = loading.boss
-            self.image = pygame.transform.scale(loading.boss, (200, 200))
-        elif death:
-            self.image = loading.img_death
-            self.image = pygame.transform.scale(loading.img_death, (195, 250))
-            self.image.set_colorkey((0, 0, 0))
-        self.rect = self.image.get_rect()
-        if sprites:
-            pygame.draw.circle(self.image, (0, 0, 100), self.rect.center, self.radius)
-        self.rect.x = x // 2 - 100
-        self.rect.y = -300
-        self.speedy = 2
-        self.speedx = 10
-        self.shoot_time = 1500
-        self.last_shot = pygame.time.get_ticks()
-
-    def shotgun_boss(self):
-        global all_sprites
-        global drobs_boss
-
-        now = pygame.time.get_ticks()
-        if now - self.last_shot > self.shoot_time:
-            self.last_shot = now
-            drob = shoots.Drob_boss('drob', self.rect.centerx + 35, self.rect.bottom - 70)
-            all_sprites.add(drob)
-            drobs_boss.add(drob)
-            drob = shoots.Drob_boss('drob2', self.rect.centerx + 35, self.rect.bottom - 70)
-            all_sprites.add(drob)
-            drobs_boss.add(drob)
-            drob = shoots.Drob_boss('drob3', self.rect.centerx + 22, self.rect.bottom - 70)
-            all_sprites.add(drob)
-            drobs_boss.add(drob)
-            loading.laser_sound.play()
-
-    def hard(self):
-        self.speedx = 12
-        self.shoot_time = 600
-
-    def update(self):
-        self.shotgun_boss()
-        self.rect.y += self.speedy
-        if self.rect.y == 50:
-            self.speedy = 0
-            self.rect.x -= self.speedx
-            if self.rect.right < 0:
-                self.rect.left = x + 200
-
-
-class Imperia(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.radius = 25
-        if mob_b:
-            self.image_orig = loading.img_vader4
-            self.image = loading.img_vader4
-            self.image = pygame.transform.scale(loading.img_vader4, (75, 60))
-        elif putin:
-            self.image_orig = loading.img_putin
-            self.image = loading.img_putin
-            self.image = pygame.transform.scale(loading.img_putin, (68, 75))
-            self.image.set_colorkey((0, 0, 0))
-        elif virus:
-            self.image_orig = loading.img_virus
-            self.image_orig = pygame.transform.scale(loading.img_virus, (65, 90))
-            self.image = self.image_orig.copy()
-        elif vaders:
-            self.image_orig = random.choice(loading.vader_images)
-            self.image = random.choice(loading.vader_images)
-        elif death:
-            self.image_orig = loading.img_death
-            self.image = loading.img_death
-            self.image = pygame.transform.scale(loading.img_death, (68, 88))
-            self.image.set_colorkey((0, 0, 0))
-
-        self.rect = self.image.get_rect()
-        if sprites:
-            pygame.draw.circle(self.image, (0, 0, 100), self.rect.center, self.radius)
-        self.rect.x = random.randrange(50, x - 70)
-        self.rect.y = random.randrange(-100, -30)
-        self.speedy_imp = random.randrange(speed_enem+count_bosses//3, speed_enem * 3+count_bosses//2)
-        self.speedx_imp = random.randrange(-speed_enem * 2-count_bosses//3, speed_enem+count_bosses//3)
-        self.rot_speed = random.randrange(-20, 20)
-        self.last_update = pygame.time.get_ticks()
-        self.rot = 0
-
-    def rotate(self):
-        if virus:
-            now = pygame.time.get_ticks()
-            if now - self.last_update > 50:
-                self.last_update = now
-                self.rot = (self.rot + self.rot_speed) % 360
-                new_image = pygame.transform.rotate(self.image_orig, self.rot)
-                old_center = self.rect.center
-                self.image = new_image
-                self.rect = self.image.get_rect()
-                self.rect.center = old_center
-        else:
-            pass
-
-    def update(self):
-        if virus:
-            self.rotate()
-        self.rect.y += self.speedy_imp
-        self.rect.x += self.speedx_imp
-        if (self.rect.top > y + 70) or (self.rect.left > x + 50) or (self.rect.right < 0):
-            if not bosses:
-                self.rect.x = random.randrange(50, x - 70)
-                self.rect.y = random.randrange(-100, -30)
-                self.speedy_imp = random.randrange(speed_enem + count_bosses // 3, speed_enem * 3 + count_bosses // 2)
-                self.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
-                self.rot_speed = random.randrange(-20, 20)
-            else:
-                self.kill()
-
-
-class Meteor(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image_orig = loading.meteor
-        self.image = self.image_orig.copy()
-        self.rect = self.image.get_rect()
-        self.radius = 25
-        self.rect.x = random.randrange(50, x - 70)
-        self.rect.y = random.randrange(-100, -30)
-        self.speedy = random.randrange(speed_enem//2+1+count_bosses//3, speed_enem*3+count_bosses//2)
-        self.rot = 0
-        self.rot_speed = random.randrange(-17, 17)
-        self.last_update = pygame.time.get_ticks()
-
-    def rotate(self):
-        now = pygame.time.get_ticks()
-        if now - self.last_update > 50:
-            self.last_update = now
-            self.rot = (self.rot + self.rot_speed) % 360
-            new_image = pygame.transform.rotate(self.image_orig, self.rot)
-            old_center = self.rect.center
-            self.image = new_image
-            self.rect = self.image.get_rect()
-            self.rect.center = old_center
-
-    def update(self):
-        self.rotate()
-        self.rect.y += self.speedy
-        if self.rect.top > y + 60:
-            if not bosses:
-                self.rect.x = random.randrange(50, x - 70)
-                self.rect.y = random.randrange(-100, -30)
-                self.speedy = random.randrange(speed_enem // 2 + 1 + count_bosses // 3,
-                                               speed_enem * 3 + count_bosses // 2)
-                self.rot_speed = random.randrange(-10, 10)
-            else:
-                self.kill()
-
-
-class Heart(pygame.sprite.Sprite):
-    def __init__(self, img, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = img
-        self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img, (70, 70))
-        self.image.set_colorkey((255, 255, 255))
-        self.rect.bottom = y
-        self.rect.centerx = x
-
-    def change(self, form, x, y):
-        self.image = form
-        if form == loading.non_heart:
-            self.image = pygame.transform.scale(form, (70, 70))
-            self.rect.bottom = y - 2
-            self.rect.centerx = x
-        elif form == loading.ful_heart:
-            self.image = pygame.transform.scale(form, (70, 70))
-            self.rect.bottom = y
-            self.rect.centerx = x
-        elif form == loading.half_heart:
-            self.image = pygame.transform.scale(form, (70, 70))
-            self.rect.bottom = y + 1
-            self.rect.centerx = x
 
 
 class Player(pygame.sprite.Sprite):
@@ -440,11 +235,11 @@ def game_without_meteors():
     shotgun_big = icons.Icon_sh_big()
     rifle = icons.Icon_ju()
     rifle_big = icons.Icon_ju_big()
-    heart1 = Heart(loading.ful_heart, 165, 310)
-    heart2 = Heart(loading.ful_heart, 165 + 75, 310)
-    heart3 = Heart(loading.ful_heart, 165 + 150, 310)
-    heart4 = Heart(loading.ful_heart, 165 + 225, 310)
-    heart5 = Heart(loading.ful_heart, 165 + 300, 310)
+    heart1 = heart.Heart(loading.ful_heart, 165, 310)
+    heart2 = heart.Heart(loading.ful_heart, 165 + 75, 310)
+    heart3 = heart.Heart(loading.ful_heart, 165 + 150, 310)
+    heart4 = heart.Heart(loading.ful_heart, 165 + 225, 310)
+    heart5 = heart.Heart(loading.ful_heart, 165 + 300, 310)
     hearts.add(heart1)
     hearts.add(heart2)
     hearts.add(heart3)
@@ -470,7 +265,7 @@ def game_without_meteors():
     all_sprites.add(player)
 
     for i in range(enemy):
-        imp = Imperia()
+        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
         all_sprites.add(imp)
         vaders_group.add(imp)
 
@@ -590,7 +385,7 @@ def game_without_meteors():
             last_boss = nowboss
             health_boss += 10
             health_boss2 = health_boss
-            boss = Boss()
+            boss = boss_game.Boss(jelly, putin, virus, vaders, death, sprites, all_sprites, drobs_boss)
             all_sprites.add(boss)
             bosses.add(boss)
 
@@ -667,7 +462,7 @@ def game_without_meteors():
                 all_sprites.add(expl)
                 count_bosses += 3
                 for _ in range(25):
-                    imp = Imperia()
+                    imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
                     all_sprites.add(imp)
                     vaders_group.add(imp)
 
@@ -739,7 +534,7 @@ def game_without_meteors():
 
         if gameover:
             current_score()
-            deathes()
+            achievment.deathes()
             best_score()
 
             for i in vaders_group:
@@ -1010,11 +805,11 @@ def game_without_meteors():
             shotgun_big = icons.Icon_sh_big()
             rifle = icons.Icon_ju()
             rifle_big = icons.Icon_ju_big()
-            heart1 = Heart(loading.ful_heart, 165, 310)
-            heart2 = Heart(loading.ful_heart, 165 + 75, 310)
-            heart3 = Heart(loading.ful_heart, 165 + 150, 310)
-            heart4 = Heart(loading.ful_heart, 165 + 225, 310)
-            heart5 = Heart(loading.ful_heart, 165 + 300, 310)
+            heart1 = heart.Heart(loading.ful_heart, 165, 310)
+            heart2 = heart.Heart(loading.ful_heart, 165 + 75, 310)
+            heart3 = heart.Heart(loading.ful_heart, 165 + 150, 310)
+            heart4 = heart.Heart(loading.ful_heart, 165 + 225, 310)
+            heart5 = heart.Heart(loading.ful_heart, 165 + 300, 310)
             hearts.add(heart1)
             hearts.add(heart2)
             hearts.add(heart3)
@@ -1039,7 +834,7 @@ def game_without_meteors():
             all_sprites.add(player)
 
             for i in range(enemy):
-                imp = Imperia()
+                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
                 all_sprites.add(imp)
                 vaders_group.add(imp)
 
@@ -1199,11 +994,11 @@ def game():
     shotgun_big = icons.Icon_sh_big()
     rifle = icons.Icon_ju()
     rifle_big = icons.Icon_ju_big()
-    heart1 = Heart(loading.ful_heart, 165, 310)
-    heart2 = Heart(loading.ful_heart, 165 + 75, 310)
-    heart3 = Heart(loading.ful_heart, 165 + 150, 310)
-    heart4 = Heart(loading.ful_heart, 165 + 225, 310)
-    heart5 = Heart(loading.ful_heart, 165 + 300, 310)
+    heart1 = heart.Heart(loading.ful_heart, 165, 310)
+    heart2 = heart.Heart(loading.ful_heart, 165 + 75, 310)
+    heart3 = heart.Heart(loading.ful_heart, 165 + 150, 310)
+    heart4 = heart.Heart(loading.ful_heart, 165 + 225, 310)
+    heart5 = heart.Heart(loading.ful_heart, 165 + 300, 310)
     hearts.add(heart1)
     hearts.add(heart2)
     hearts.add(heart3)
@@ -1231,11 +1026,11 @@ def game():
     all_sprites.add(player)
 
     for i in range(enemy_vaders):
-        imp = Imperia()
+        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
         all_sprites.add(imp)
         vaders_group.add(imp)
     for i in range(enemy_meteors):
-        m = Meteor()
+        m = meteor.Meteor(bosses, speed_enem, count_bosses)
         all_sprites.add(m)
         meteors.add(m)
 
@@ -1355,7 +1150,7 @@ def game():
             last_boss = nowboss
             health_boss += 10
             health_boss2 = health_boss
-            boss = Boss()
+            boss = boss_game.Boss(jelly, putin, virus, vaders, death, sprites, all_sprites, drobs_boss)
             boss.hard()
             all_sprites.add(boss)
             bosses.add(boss)
@@ -1434,11 +1229,11 @@ def game():
                 all_sprites.add(expl)
                 count_bosses += 3
                 for _ in range(enemy_vaders):
-                    imp = Imperia()
+                    imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
                     all_sprites.add(imp)
                     vaders_group.add(imp)
                 for _ in range(enemy_meteors):
-                    m = Meteor()
+                    m = meteor.Meteor(bosses, speed_enem, count_bosses)
                     all_sprites.add(m)
                     meteors.add(m)
 
@@ -1525,7 +1320,7 @@ def game():
 
         if gameover:
             current_score()
-            deathes()
+            achievment.deathes()
             best_score()
 
             for i in vaders_group:
@@ -1852,11 +1647,11 @@ def game():
             shotgun_big = icons.Icon_sh_big()
             rifle = icons.Icon_ju()
             rifle_big = icons.Icon_ju_big()
-            heart1 = Heart(loading.ful_heart, 165, 310)
-            heart2 = Heart(loading.ful_heart, 165 + 75, 310)
-            heart3 = Heart(loading.ful_heart, 165 + 150, 310)
-            heart4 = Heart(loading.ful_heart, 165 + 225, 310)
-            heart5 = Heart(loading.ful_heart, 165 + 300, 310)
+            heart1 = heart.Heart(loading.ful_heart, 165, 310)
+            heart2 = heart.Heart(loading.ful_heart, 165 + 75, 310)
+            heart3 = heart.Heart(loading.ful_heart, 165 + 150, 310)
+            heart4 = heart.Heart(loading.ful_heart, 165 + 225, 310)
+            heart5 = heart.Heart(loading.ful_heart, 165 + 300, 310)
             hearts.add(heart1)
             hearts.add(heart2)
             hearts.add(heart3)
@@ -1882,11 +1677,11 @@ def game():
             all_sprites.add(player)
 
             for i in range(enemy_vaders):
-                imp = Imperia()
+                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
                 all_sprites.add(imp)
                 vaders_group.add(imp)
             for i in range(enemy_meteors):
-                m = Meteor()
+                m = meteor.Meteor(bosses, speed_enem, count_bosses)
                 all_sprites.add(m)
                 meteors.add(m)
 
@@ -2035,7 +1830,7 @@ def kill_or_die():
     rifle_big = icons.Icon_ju_big()
     all_sprites.add(player)
     for i in range(28):
-        imp = Imperia()
+        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
         all_sprites.add(imp)
         vaders_group.add(imp)
     sh = 0
@@ -2171,7 +1966,7 @@ def kill_or_die():
 
         if gameover:
             current_score()
-            deathes()
+            achievment.deathes()
             best_score()
 
             for i in vaders_group:
@@ -2352,7 +2147,7 @@ def kill_or_die():
             rifle_big = icons.Icon_ju_big()
             all_sprites.add(player)
             for i in range(28):
-                imp = Imperia()
+                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
                 all_sprites.add(imp)
                 vaders_group.add(imp)
             sh = 0
@@ -2457,7 +2252,7 @@ def kill_or_die():
             rifle_big = icons.Icon_ju_big()
             all_sprites.add(player)
             for i in range(28):
-                imp = Imperia()
+                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
                 all_sprites.add(imp)
                 vaders_group.add(imp)
             sh = 0
@@ -2574,6 +2369,169 @@ def kill_or_die():
     return
 
 
+def preview():
+    achievment.success()
+    global all_sprites, drobs, bullets, vaders_group, bosses
+    global screen
+
+    loading.pause_snd.play(-1)
+    loading.pause_snd.stop()
+
+    loading.menu_sound.play(-1)
+
+    os.environ['SDL_VIDEO_CENTERED'] = '1'
+    screen = pygame.display.set_mode((x, y - 30))
+
+    background_images = []
+    background_list = ['background1.jpg', 'background2.jpg', 'background3.jpg']
+    for img in background_list:
+        if img == 'background1.jpg':
+            bd = pygame.image.load(os.path.join(img_folder, img))
+            bd = pygame.transform.scale(bd, (x + 200, y))
+            background_images.append(bd)
+        else:
+            bd = pygame.image.load(os.path.join(img_folder, img))
+            bd = pygame.transform.scale(bd, (x, y))
+            background_images.append(bd)
+    for img in background_images:
+        background_rect = img.get_rect()
+
+    random_background = random.choice(background_images)
+
+    def start():
+        def changes():
+            btn_start.function = game
+
+        btn_start.change(0, 0, 440)
+        btn_start.change(x // 2 - btn_start.width // 2, y - 120, 440, 70, 'Сложный режим')
+        btn_option.change(btn_start.rect.x + btn_start.width, y - 120, 440, 70, 'Режим таймера', kill_or_die)
+        btn_quit.change(btn_start.rect.x - btn_start.width, y - 120, 440, 70, 'Лёгкий режим', game_without_meteors)
+        changes()
+
+    def back():
+        btn_quit.change(x // 4, y - 120, 170, 70, 'Выход', super_break)
+        btn_start.change(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, 'Старт', start)
+        btn_option.change(btn_quit.rect.x + btn_quit.width + btn_start.width, y - 120, 190, 70, 'Опции', settings)
+
+    vaders_group = pygame.sprite.Group()
+    all_sprites = pygame.sprite.Group()
+    bullets = pygame.sprite.Group()
+
+    for i in range(25):
+        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
+        all_sprites.add(imp)
+        vaders_group.add(imp)
+
+    npc = character.Npc(all_sprites, bullets)
+
+    btn_quit = button.Buttonpy(x // 4, y - 120, 170, 70, screen, 'Выход', super_break)
+    btn_start = button.Buttonpy(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, screen, 'Старт', start)
+    btn_option = button.Buttonpy(btn_quit.rect.x + btn_quit.width + btn_start.width, y - 120, 190, 70, screen, 'Опции',
+                                 settings)
+
+    all_sprites.add(npc)
+
+    all_sprites.add(btn_quit)
+    all_sprites.add(btn_start)
+    all_sprites.add(btn_option)
+
+    clock = pygame.time.Clock()
+
+    while True:
+        clock.tick(FPS)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+                return
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    sys.exit()
+                    return
+                if event.key == pygame.K_e:
+                    pygame.time.delay(200)
+                    back()
+                if event.key == pygame.K_q:
+                    achievment.achievements()
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 3:
+                    for i in vaders_group:
+                        loading.boom_snd.play()
+                        if random.randint(1, 2) == 1:
+                            expl = explosions.Explosion(i.rect.center, 'lg')
+                            all_sprites.add(expl)
+                        else:
+                            expl = explosions.Explosion(i.rect.center, 'lg', 2)
+                            all_sprites.add(expl)
+                        i.rect.x = random.randrange(50, x - 70)
+                        i.rect.y = random.randrange(-100, -30)
+                        i.speedy_imp = random.randrange(speed_enem + count_bosses // 3,
+                                                        speed_enem * 3 + count_bosses // 2)
+                        i.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3,
+                                                        speed_enem + count_bosses // 3)
+                        i.rot_speed = random.randrange(-20, 20)
+                    loading.boom_snd.play()
+                    bullets = pygame.sprite.Group()
+                    npc.kill()
+                    if random.randint(1, 2) == 1:
+                        expl = explosions.Explosion(npc.rect.center, 'hu')
+                        all_sprites.add(expl)
+                    else:
+                        expl = explosions.Explosion(npc.rect.center, 'hu', 2)
+                        all_sprites.add(expl)
+                    npc = character.Npc()
+                    all_sprites.add(npc)
+
+        boom_b = pygame.sprite.groupcollide(vaders_group, bullets, False, True, pygame.sprite.collide_circle)
+        boom = pygame.sprite.spritecollide(npc, vaders_group, False, pygame.sprite.collide_circle)
+
+        for hit in boom_b:
+            loading.boom_snd.play()
+            if random.randint(1, 2) == 1:
+                expl = explosions.Explosion(hit.rect.center, 'lg')
+                all_sprites.add(expl)
+            else:
+                expl = explosions.Explosion(hit.rect.center, 'lg', 2)
+                all_sprites.add(expl)
+            hit.rect.x = random.randrange(50, x - 70)
+            hit.rect.y = random.randrange(-100, -30)
+            hit.speedy_imp = random.randrange(speed_enem + count_bosses // 3, speed_enem * 3 + count_bosses // 2)
+            hit.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
+            hit.rot_speed = random.randrange(-20, 20)
+
+        for hit4 in boom:
+            loading.metal.play()
+            if random.randint(1, 2) == 1:
+                expl = explosions.Explosion(hit4.rect.center, 'sm')
+                all_sprites.add(expl)
+            else:
+                expl = explosions.Explosion(hit4.rect.center, 'sm', 2)
+                all_sprites.add(expl)
+            hit4.rect.x = random.randrange(50, x - 70)
+            hit4.rect.y = random.randrange(-100, -30)
+            hit.speedy_imp = random.randrange(speed_enem + count_bosses // 3, speed_enem * 3 + count_bosses // 2)
+            hit.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
+            hit4.rot_speed = random.randrange(-20, 20)
+
+        screen.blit(random_background, background_rect)
+
+        all_sprites.update()
+        all_sprites.draw(screen)
+
+        draw_text(screen, btn_quit.text, 40, btn_quit.rect.x + btn_quit.width // 2, btn_quit.rect.y)
+        draw_text(screen, btn_start.text, 40, btn_start.rect.x + btn_start.width // 2, btn_start.rect.y)
+        draw_text(screen, btn_option.text, 40, btn_option.rect.x + btn_option.width // 2, btn_option.rect.y)
+
+        draw_text(screen, '"ESC": выход', 20, x - 100, 70)
+        draw_text(screen, '"E": назад', 20, 100, 70)
+        draw_text(screen, '"Q": достижения', 20, 110, 130)
+
+        pygame.display.flip()
+        pygame.display.update()
+    return
+
+
 def draw_text(surf, text, size, x, y):
     font = pygame.font.Font(font_name, size)
     text_surface = font.render(text, True, (255, 255, 255))
@@ -2643,11 +2601,11 @@ def speed():
 
 def skins():
     spacebar()
-    global mob_b, putin, virus, vaders, death
+    global jelly, putin, virus, vaders, death
 
     if var.get() == 0:
         vaders = False
-        mob_b = True
+        jelly = True
         virus = False
         putin = False
         death = False
@@ -2655,27 +2613,27 @@ def skins():
         vaders = False
         putin = True
         virus = False
-        mob_b = False
+        jelly = False
         death = False
     elif var.get() == 2:
         vaders = False
         virus = True
         putin = False
-        mob_b = False
+        jelly = False
         death = False
     elif var.get() == 3:
         vaders = True
-        mob_b = False
+        jelly = False
         virus = False
         putin = False
         death = False
     elif var.get() == 4:
         death = True
         vaders = False
-        mob_b = False
+        jelly = False
         virus = False
         putin = False
-    return vaders, virus, putin, mob_b, death
+    return vaders, virus, putin, jelly, death
 
 
 def reset():
@@ -2683,7 +2641,7 @@ def reset():
     for i in vaders_group:
         i.kill()
     for i in range(25):
-        imp = Imperia()
+        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
         all_sprites.add(imp)
         vaders_group.add(imp)
 
@@ -2696,78 +2654,6 @@ def moving():
     elif mouse_btn == 1:
         messagebox.showinfo('Меню игры STAR WARS - THE JOKE',
                             'УПРАВЛЕНИЕ: \n Передвижение мышкой \n ЛЕВАЯ кнопка мыши - стрелять \n Переключать оружия КОЛЁСИКОМ мыши \n "ESC" - поставить / убрать паузу')
-    return
-
-
-def deathes():
-    with open('scriptspy\papers\deathes.txt', 'a') as file:
-        file.write('1 ')
-
-
-def success():
-    global gameovers
-    for_file = []
-    with open('scriptspy\papers\deathes.txt', 'r') as file:
-        lines = file.readlines()
-        if lines:
-            list = lines[0].split(' ')
-            for i in list:
-                if i != '':
-                    for_file.append(int(i))
-    if lines:
-        gameovers = sum(for_file)
-    else:
-        gameovers = 0
-
-
-def achievements():
-    root = Tk()
-    root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth()+10, root.winfo_screenheight()+10))
-
-    def break_root():
-        root.destroy()
-
-    img_ram = Image.open(os.path.join(img_folder, 'ram.jpg'))
-    img_ram = img_ram.resize((x, y), Image.ANTIALIAS)
-    img_ram = ImageTk.PhotoImage(img_ram)
-
-    img_achievement2 = ImageTk.PhotoImage(loading.img_achievement)
-    img_skull2 = ImageTk.PhotoImage(loading.img_skull)
-
-    canvas = Canvas(root, width=x+10, height=y+10, bg='black')
-    canvas.pack()
-
-    img_ram = Image.open(os.path.join(img_folder, 'ram.jpg'))
-    img_ram = img_ram.resize((x, y), Image.ANTIALIAS)
-    img_ram = ImageTk.PhotoImage(img_ram, master=root)
-
-    canvas.create_image(x//2, y//2-25, image=img_ram)
-
-    canvas.create_image(17, 20, image=img_achievement2)
-    if gameovers >= 50:
-        text = canvas.create_text(130, 20, font=("Comic Sans MS", 15), text="Умрите 50 раз", fill="#dceca4")
-        text = canvas.create_text(130, 50, font=("Comic Sans MS", 20), text="Получено", fill="#dceca4")
-    else:
-        text = canvas.create_text(130, 20, font=("Comic Sans MS", 15), text="Умрите " + (str(50 - gameovers)) + ' раз',
-                                  fill="#dceca4")
-        text = canvas.create_text(130, 50, font=("Comic Sans MS", 15), text="Награда: скин ", fill="#dceca4")
-        canvas.create_image(230, 50, image=img_skull2)
-
-    d = Button(text="OK", command=break_root, font=("Comic Sans MS", 30))
-    d.place(x=50, y=y-200)
-    d['bg'] = '#dceca4'
-    d['activebackground'] = 'black'
-    d['fg'] = 'black'
-    d['activeforeground'] = '#dceca4'
-
-    root.bind('<Return>', break_root)
-
-    root.overrideredirect(1)
-    #root.state('zoomed')
-    root.attributes("-topmost", True)
-    root.update()
-    root.deiconify()
-    root.mainloop()
     return
 
 
@@ -2831,7 +2717,7 @@ def settings():
     canvas.create_image(148, 280, image=img_putin)
     canvas.create_image(238, 280, image=img_virus)
     canvas.create_image(326, 280, image=img_vaders)
-    if gameovers >= 50:
+    if achievment.gameovers >= 50:
         canvas.create_image(420, 280, image=img_skull2)
     var = IntVar()
     var.set(3)
@@ -2843,7 +2729,7 @@ def settings():
     radio.place(x=225, y=325)
     radio = Radiobutton(root, variable=var, value=3)
     radio.place(x=315, y=325)
-    if gameovers >= 50:
+    if achievment.gameovers >= 50:
         radio = Radiobutton(root, variable=var, value=4)
         radio.place(x=404, y=325)
 
@@ -2876,166 +2762,6 @@ def settings():
     root.update()
     root.deiconify()
     root.mainloop()
-    return
-
-
-def preview():
-    success()
-    global all_sprites, drobs, bullets, vaders_group, bosses
-    global screen
-    loading.pause_snd.play(-1)
-    loading.pause_snd.stop()
-
-    loading.menu_sound.play(-1)
-
-    os.environ['SDL_VIDEO_CENTERED'] = '1'
-    screen = pygame.display.set_mode((x, y-30))
-
-    background_images = []
-    background_list = ['background1.jpg', 'background2.jpg', 'background3.jpg']
-    for img in background_list:
-        if img == 'background1.jpg':
-            bd = pygame.image.load(os.path.join(img_folder, img))
-            bd = pygame.transform.scale(bd, (x+200, y))
-            background_images.append(bd)
-        else:
-            bd = pygame.image.load(os.path.join(img_folder, img))
-            bd = pygame.transform.scale(bd, (x, y))
-            background_images.append(bd)
-    for img in background_images:
-        background_rect = img.get_rect()
-
-    random_background = random.choice(background_images)
-
-    def start():
-        def changes():
-            btn_start.function = game
-        btn_start.change(0, 0, 440)
-        btn_start.change(x//2-btn_start.width//2, y - 120, 440, 70, 'Сложный режим')
-        btn_option.change(btn_start.rect.x+btn_start.width, y - 120, 440, 70, 'Режим таймера', kill_or_die)
-        btn_quit.change(btn_start.rect.x-btn_start.width, y - 120, 440, 70, 'Лёгкий режим', game_without_meteors)
-        changes()
-
-    def back():
-        btn_quit.change(x // 4, y - 120, 170, 70, 'Выход', super_break)
-        btn_start.change(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, 'Старт', start)
-        btn_option.change(btn_quit.rect.x + btn_quit.width + btn_start.width, y - 120, 190, 70, 'Опции', settings)
-
-    vaders_group = pygame.sprite.Group()
-    all_sprites = pygame.sprite.Group()
-    bullets = pygame.sprite.Group()
-
-    for i in range(25):
-        imp = Imperia()
-        all_sprites.add(imp)
-        vaders_group.add(imp)
-
-    npc = character.Npc(all_sprites, bullets)
-
-    btn_quit = button.Buttonpy(x // 4, y - 120, 170, 70, screen, 'Выход', super_break)
-    btn_start = button.Buttonpy(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, screen, 'Старт', start)
-    btn_option = button.Buttonpy(btn_quit.rect.x + btn_quit.width + btn_start.width, y - 120, 190, 70, screen, 'Опции', settings)
-
-    all_sprites.add(npc)
-
-    all_sprites.add(btn_quit)
-    all_sprites.add(btn_start)
-    all_sprites.add(btn_option)
-
-    clock = pygame.time.Clock()
-
-    while True:
-        clock.tick(FPS)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-                return
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    sys.exit()
-                    return
-                if event.key == pygame.K_e:
-                    pygame.time.delay(200)
-                    back()
-                if event.key == pygame.K_q:
-                    achievements()
-
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3:
-                    for i in vaders_group:
-                        loading.boom_snd.play()
-                        if random.randint(1, 2) == 1:
-                            expl = explosions.Explosion(i.rect.center, 'lg')
-                            all_sprites.add(expl)
-                        else:
-                            expl = explosions.Explosion(i.rect.center, 'lg', 2)
-                            all_sprites.add(expl)
-                        i.rect.x = random.randrange(50, x - 70)
-                        i.rect.y = random.randrange(-100, -30)
-                        i.speedy_imp = random.randrange(speed_enem + count_bosses // 3,
-                                                           speed_enem * 3 + count_bosses // 2)
-                        i.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3,
-                                                           speed_enem + count_bosses // 3)
-                        i.rot_speed = random.randrange(-20, 20)
-                    loading.boom_snd.play()
-                    bullets = pygame.sprite.Group()
-                    npc.kill()
-                    if random.randint(1, 2) == 1:
-                        expl = explosions.Explosion(npc.rect.center, 'hu')
-                        all_sprites.add(expl)
-                    else:
-                        expl = explosions.Explosion(npc.rect.center, 'hu', 2)
-                        all_sprites.add(expl)
-                    npc = character.Npc()
-                    all_sprites.add(npc)
-
-        boom_b = pygame.sprite.groupcollide(vaders_group, bullets, False, True, pygame.sprite.collide_circle)
-        boom = pygame.sprite.spritecollide(npc, vaders_group, False, pygame.sprite.collide_circle)
-
-        for hit in boom_b:
-            loading.boom_snd.play()
-            if random.randint(1, 2) == 1:
-                expl = explosions.Explosion(hit.rect.center, 'lg')
-                all_sprites.add(expl)
-            else:
-                expl = explosions.Explosion(hit.rect.center, 'lg', 2)
-                all_sprites.add(expl)
-            hit.rect.x = random.randrange(50, x - 70)
-            hit.rect.y = random.randrange(-100, -30)
-            hit.speedy_imp = random.randrange(speed_enem + count_bosses // 3, speed_enem * 3 + count_bosses // 2)
-            hit.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
-            hit.rot_speed = random.randrange(-20, 20)
-
-        for hit4 in boom:
-            loading.metal.play()
-            if random.randint(1, 2) == 1:
-                expl = explosions.Explosion(hit4.rect.center, 'sm')
-                all_sprites.add(expl)
-            else:
-                expl = explosions.Explosion(hit4.rect.center, 'sm', 2)
-                all_sprites.add(expl)
-            hit4.rect.x = random.randrange(50, x - 70)
-            hit4.rect.y = random.randrange(-100, -30)
-            hit.speedy_imp = random.randrange(speed_enem + count_bosses // 3, speed_enem * 3 + count_bosses // 2)
-            hit.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
-            hit4.rot_speed = random.randrange(-20, 20)
-
-        screen.blit(random_background, background_rect)
-
-        all_sprites.update()
-        all_sprites.draw(screen)
-
-        draw_text(screen, btn_quit.text, 40, btn_quit.rect.x+btn_quit.width//2, btn_quit.rect.y)
-        draw_text(screen, btn_start.text, 40, btn_start.rect.x+btn_start.width//2, btn_start.rect.y)
-        draw_text(screen, btn_option.text, 40, btn_option.rect.x+btn_option.width//2, btn_option.rect.y)
-
-        draw_text(screen, '"ESC": выход', 20, x-100, 70)
-        draw_text(screen, '"E": назад', 20, 100, 70)
-        draw_text(screen, '"Q": достижения', 20, 110, 130)
-
-        pygame.display.flip()
-        pygame.display.update()
     return
 
 
