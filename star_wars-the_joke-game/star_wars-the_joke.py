@@ -1491,7 +1491,7 @@ def preview():
     loading.menu_sound.play(-1)
 
     os.environ['SDL_VIDEO_CENTERED'] = '1'
-    screen = pygame.display.set_mode((x, y - 30))
+    screen = pygame.display.set_mode((x, y-27),pygame.HWSURFACE|pygame.DOUBLEBUF)
 
     background_images = []
     background_list = ['background1.jpg', 'background2.jpg', 'background3.jpg']
@@ -1856,8 +1856,8 @@ def settings():
     button['fg'] = 'black'
     button['activeforeground'] = '#dceca4'
 
-    d = Button(text="Подтведить эти изменения", command=destroy, font=("Comic Sans MS", 17))
-    d.place(x=20, y=y-120)
+    d = Button(text="Подтведить эти изменения", command=destroy, font=("Comic Sans MS", 14))
+    d.place(x=20, y=y-100)
     d['bg'] = '#dceca4'
     d['activebackground'] = 'black'
     d['fg'] = 'black'
