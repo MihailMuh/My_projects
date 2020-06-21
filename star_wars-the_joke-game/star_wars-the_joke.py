@@ -63,7 +63,7 @@ class Player(pygame.sprite.Sprite):
         self.speedy = 0
         self.shoot_time = 120
         self.last_shot = pygame.time.get_ticks()
-        self.shotgun_time = 2150
+        self.shotgun_time = 800
         self.last_shotgun = pygame.time.get_ticks()
 
     def update(self):
@@ -150,7 +150,7 @@ def game():
     global menu_sound
     global health_boss
     global ju, sh, equip
-    global all_sprites, drobs, bullets, drobs_boss, bosses
+    global all_sprites, bullets, drobs, drobs_boss, bosses
     global score, count_bosses
     global waiting
 
@@ -245,10 +245,10 @@ def game():
     gameover = False
     health_boss2 = health_boss
     if functions.hardmode:
-        enemy_vaders = 23
-        enemy_meteors = 10
-    else:
         enemy_vaders = 20
+        enemy_meteors = 8
+    else:
+        enemy_vaders = 17
         enemy_meteors = 0
     boss_time = 50000
     last_boss = pygame.time.get_ticks()
@@ -257,9 +257,14 @@ def game():
     all_sprites.add(player)
 
     for i in range(enemy_vaders):
-        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
-        all_sprites.add(imp)
-        vaders_group.add(imp)
+        if random.random() > 0:
+            imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses, all_sprites)
+            all_sprites.add(imp)
+            vaders_group.add(imp)
+        else:
+            imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss)
+            all_sprites.add(imp)
+            vaders_group.add(imp)
     for i in range(enemy_meteors):
         m = meteor.Meteor(bosses, speed_enem, count_bosses)
         all_sprites.add(m)
@@ -413,6 +418,12 @@ def game():
                                 all_sprites.remove(rifle_big)
                                 all_sprites.add(rifle)
 
+        for i in vaders_group:
+            if i.radius == 70:
+                distance = functions.rect_distance(player.rect, i.rect)
+                if distance <= 200:
+                    i.shoot()
+
         if (nowboss - last_boss > boss_time) and not bosses:
             last_boss = nowboss
             health_boss += 10
@@ -449,20 +460,14 @@ def game():
                 all_sprites.add(rifle)
 
         boom_b = pygame.sprite.groupcollide(vaders_group, bullets, False, True, pygame.sprite.collide_circle)
-        boom_sh = pygame.sprite.groupcollide(vaders_group, drobs, False, False)
+        boom_sh = pygame.sprite.groupcollide(vaders_group, drobs, False, True)
         boom = pygame.sprite.spritecollide(player, vaders_group, False, pygame.sprite.collide_circle)
         boom_m = pygame.sprite.spritecollide(player, meteors, False, pygame.sprite.collide_circle)
+        boom_bullet_boss = pygame.sprite.spritecollide(player, drobs_boss, True, pygame.sprite.collide_circle)
 
         if bosses:
             boom_boss = pygame.sprite.groupcollide(bullets, bosses, True, False)
             boom_boss_drob = pygame.sprite.groupcollide(drobs, bosses, True, False)
-            boom_bullet_boss = pygame.sprite.spritecollide(player, drobs_boss, True, pygame.sprite.collide_circle)
-
-            for i in boom_bullet_boss:
-                if not functions.godmode:
-                    hits += 1
-                expl = explosions.Explosion(i.rect.center, 'sm', 2)
-                all_sprites.add(expl)
 
             for i in boom_boss:
                 if functions.godmode:
@@ -499,9 +504,15 @@ def game():
                 all_sprites.add(expl)
                 count_bosses += 3
                 for _ in range(enemy_vaders):
-                    imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
-                    all_sprites.add(imp)
-                    vaders_group.add(imp)
+                    if random.random() > 0:
+                        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem,
+                                                count_bosses, all_sprites)
+                        all_sprites.add(imp)
+                        vaders_group.add(imp)
+                    else:
+                        imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss)
+                        all_sprites.add(imp)
+                        vaders_group.add(imp)
                 for _ in range(enemy_meteors):
                     m = meteor.Meteor(bosses, speed_enem, count_bosses)
                     all_sprites.add(m)
@@ -517,6 +528,12 @@ def game():
                 heart2.change(loading.ful_heart, 165 + 75, 310)
                 heart1.change(loading.ful_heart, 165, 310)
                 loading.heal_sound.play()
+
+        for i in boom_bullet_boss:
+            if not functions.godmode:
+                hits += 1
+            expl = explosions.Explosion(i.rect.center, 'sm', 2)
+            all_sprites.add(expl)
 
         for hit3 in boom_m:
             loading.metal.play()
@@ -534,45 +551,28 @@ def game():
             hit3.rot_speed = random.randrange(-10, 10)
 
         for hit in boom_b:
-            score += 1
-            loading.boom_snd.play()
-            if random.randint(1, 2) == 1:
-                expl = explosions.Explosion(hit.rect.center, 'lg')
-                all_sprites.add(expl)
-            else:
-                expl = explosions.Explosion(hit.rect.center, 'lg', 2)
-                all_sprites.add(expl)
-            if not bosses:
-                hit.rect.x = random.randrange(50, x - 70)
-                hit.rect.y = random.randrange(-100, -30)
-                hit.speedy_imp = random.randrange(speed_enem + count_bosses // 3, speed_enem * 3 + count_bosses // 2)
-                hit.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
-                hit.rot_speed = random.randrange(-20, 20)
-            else:
-                hit.kill()
+            hit.damage('rifle')
+            if hit.health <= 0:
+                if hit.radius == 70:
+                    score += 2
+                else:
+                    score += 1
 
         for hit2 in boom_sh:
-            score += 1
-            loading.boom_snd.play()
-            if random.randint(1, 2) == 1:
-                expl = explosions.Explosion(hit2.rect.center, 'lg')
-                all_sprites.add(expl)
-            else:
-                expl = explosions.Explosion(hit2.rect.center, 'lg', 2)
-                all_sprites.add(expl)
-            if not bosses:
-                hit2.rect.x = random.randrange(50, x - 70)
-                hit2.rect.y = random.randrange(-100, -30)
-                hit2.speedy_imp = random.randrange(speed_enem + count_bosses // 3, speed_enem * 3 + count_bosses // 2)
-                hit2.speedx_imp = random.randrange(-speed_enem * 2 - count_bosses // 3, speed_enem + count_bosses // 3)
-                hit2.rot_speed = random.randrange(-20, 20)
-            else:
-                hit2.kill()
+            hit2.damage('big')
+            if hit2.health <= 0:
+                if hit2.radius == 70:
+                    score += 2
+                else:
+                    score += 1
 
         for hit4 in boom:
             loading.metal.play()
             if not functions.godmode:
-                hits += 2
+                if hit4.radius == 70:
+                    hits += 3
+                else:
+                    hits += 2
             if random.randint(1, 2) == 1:
                 expl = explosions.Explosion(hit4.rect.center, 'sm')
                 all_sprites.add(expl)
@@ -821,9 +821,15 @@ def game():
             all_sprites.add(player)
 
             for i in range(enemy_vaders):
-                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
-                all_sprites.add(imp)
-                vaders_group.add(imp)
+                if random.random() > 0:
+                    imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem,
+                                            count_bosses, all_sprites)
+                    all_sprites.add(imp)
+                    vaders_group.add(imp)
+                else:
+                    imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss)
+                    all_sprites.add(imp)
+                    vaders_group.add(imp)
             for i in range(enemy_meteors):
                 m = meteor.Meteor(bosses, speed_enem, count_bosses)
                 all_sprites.add(m)
@@ -974,7 +980,8 @@ def kill_or_die():
     rifle_big = icons.Icon_ju_big()
     all_sprites.add(player)
     for i in range(28):
-        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
+        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem,
+                                count_bosses, all_sprites)
         all_sprites.add(imp)
         vaders_group.add(imp)
     sh = 0
@@ -1257,7 +1264,8 @@ def kill_or_die():
             rifle_big = icons.Icon_ju_big()
             all_sprites.add(player)
             for i in range(28):
-                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
+                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses,
+                                        speed_enem, count_bosses, all_sprites)
                 all_sprites.add(imp)
                 vaders_group.add(imp)
             sh = 0
@@ -1362,7 +1370,8 @@ def kill_or_die():
             rifle_big = icons.Icon_ju_big()
             all_sprites.add(player)
             for i in range(28):
-                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
+                imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses,
+                                        speed_enem, count_bosses, all_sprites)
                 all_sprites.add(imp)
                 vaders_group.add(imp)
             sh = 0
@@ -1491,7 +1500,7 @@ def preview():
     loading.menu_sound.play(-1)
 
     os.environ['SDL_VIDEO_CENTERED'] = '1'
-    screen = pygame.display.set_mode((x, y - 30))
+    screen = pygame.display.set_mode((x, y-27),pygame.HWSURFACE|pygame.DOUBLEBUF)
 
     background_images = []
     background_list = ['background1.jpg', 'background2.jpg', 'background3.jpg']
@@ -1528,7 +1537,7 @@ def preview():
     bullets = pygame.sprite.Group()
 
     for i in range(25):
-        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
+        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses, all_sprites)
         all_sprites.add(imp)
         vaders_group.add(imp)
 
@@ -1751,7 +1760,8 @@ def reset():
     for i in vaders_group:
         i.kill()
     for i in range(25):
-        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses)
+        imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses,
+                                speed_enem, count_bosses, all_sprites)
         all_sprites.add(imp)
         vaders_group.add(imp)
 
@@ -1856,8 +1866,8 @@ def settings():
     button['fg'] = 'black'
     button['activeforeground'] = '#dceca4'
 
-    d = Button(text="Подтведить эти изменения", command=destroy, font=("Comic Sans MS", 17))
-    d.place(x=20, y=y-120)
+    d = Button(text="Подтведить эти изменения", command=destroy, font=("Comic Sans MS", 14))
+    d.place(x=20, y=y-100)
     d['bg'] = '#dceca4'
     d['activebackground'] = 'black'
     d['fg'] = 'black'
