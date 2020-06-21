@@ -1,20 +1,17 @@
 import pygame
-import os
-
+from pygame.math import Vector2
+import math
+from scriptspy import loading, system_size
 pygame.init()
-
-folder = os.path.dirname(__file__)
-img_folder = os.path.join(folder, 'images')
-img_bullet = pygame.image.load(os.path.join(img_folder, 'bullet.png'))
 
 
 class Drob(pygame.sprite.Sprite):
     def __init__(self, shape, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
+        pygame.sprite.Sprite.__init__(self)
         self.radius = 5
-        self.image = img_bullet
+        self.image = loading.img_bullet
         self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet, (20, 40))
+        self.image = pygame.transform.scale(loading.img_bullet, (20, 40))
         self.rect.bottom = y
         self.rect.centerx = x
         self.shape = shape
@@ -43,11 +40,11 @@ class Drob(pygame.sprite.Sprite):
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
+        pygame.sprite.Sprite.__init__(self)
         self.radius = 10
-        self.image = img_bullet
+        self.image = loading.img_bullet
         self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet, (15, 40))
+        self.image = pygame.transform.scale(loading.img_bullet, (15, 40))
         self.rect.bottom = y
         self.rect.centerx = x
         self.speedy = -35
@@ -61,10 +58,10 @@ class Bullet(pygame.sprite.Sprite):
 class Drob_boss(pygame.sprite.Sprite):
     def __init__(self, shape, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = img_bullet
+        self.image = loading.img_bullet
         self.radius = 5
         self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(img_bullet, (20, 40))
+        self.image = pygame.transform.scale(loading.img_bullet, (20, 40))
         self.image = pygame.transform.rotate(self.image, 180)
         self.rect.bottom = y
         self.rect.centerx = x
@@ -83,4 +80,30 @@ class Drob_boss(pygame.sprite.Sprite):
         self.rect.y -= self.speedy
         self.rect.x -= self.speedx
         if self.rect.bottom < 0:
+            self.kill()
+
+
+class BulletEnemy(pygame.sprite.Sprite):
+    def __init__(self, shape, pos, angle):
+        pygame.sprite.Sprite.__init__(self)
+        self.pos = pos
+        self.shape = shape
+        self.image = loading.img_bullet_enemy
+        self.image = pygame.transform.scale(self.image, (17, 50))
+        if self.shape == 'drob2':
+            self.angle = angle - 30
+        elif self.shape == 'drob3':
+            self.angle = angle + 30
+        elif self.shape == 'drob':
+            self.angle = angle
+        self.image = pygame.transform.rotate(self.image, int(-self.angle+90))
+        self.rect = self.image.get_rect(center=pos)
+        offset = Vector2(15, 0).rotate(self.angle)
+        self.pos = Vector2(self.pos) + offset
+        self.velocity = Vector2(1, 0).rotate(self.angle) * 9
+
+    def update(self):
+        self.pos += self.velocity
+        self.rect.center = self.pos
+        if (self.pos[0] < -400) or (self.pos[0] > system_size.x + 400) or (self.pos[1] > system_size.y + 400):
             self.kill()
