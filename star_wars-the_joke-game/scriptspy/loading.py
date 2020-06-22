@@ -32,6 +32,7 @@ rifle = pygame.image.load(os.path.join(img_folder, 'rifle.png'))
 img_triple_fighter = pygame.image.load(os.path.join(img_folder, 'triple_fighter.png'))
 img_bullet_enemy = pygame.image.load(os.path.join(img_folder, 'bullet-enemy.png'))
 img_bullet = pygame.image.load(os.path.join(img_folder, 'bullet.png'))
+img_dead_boss = pygame.image.load(os.path.join(img_folder, 'destroyed.png'))
 
 laser_sound = pygame.mixer.Sound(os.path.join(snd_folder, 'laser.wav'))
 laser_sound.set_volume(0.05)
@@ -114,3 +115,6 @@ for i in range(12):
     explosion_anim2['lg'].append(img_lg2)
     img_sm2 = pygame.transform.scale(img2, (70, 55))
     explosion_anim2['sm'].append(img_sm2)
+
+chanse_triple_fighter = 0
+chanse_dead_boss = 0

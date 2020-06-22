@@ -73,6 +73,24 @@ class Drob_boss(pygame.sprite.Sprite):
         elif self.shape == 'drob3':
             self.speedx = 8
             self.image = pygame.transform.rotate(self.image, -30)
+        elif self.shape == 'drob4':
+            self.speedx = -12
+            self.image = pygame.transform.rotate(self.image, 45)
+        elif self.shape == 'drob5':
+            self.speedx = 12
+            self.image = pygame.transform.rotate(self.image, -45)
+        elif self.shape == 'drob6':
+            self.speedx = -16
+            self.image = pygame.transform.rotate(self.image, 60)
+        elif self.shape == 'drob7':
+            self.speedx = 16
+            self.image = pygame.transform.rotate(self.image, -60)
+        elif self.shape == 'drob8':
+            self.speedx = -4
+            self.image = pygame.transform.rotate(self.image, 15)
+        elif self.shape == 'drob9':
+            self.speedx = 4
+            self.image = pygame.transform.rotate(self.image, -15)
         elif self.shape == 'drob':
             self.speedx = 0
 

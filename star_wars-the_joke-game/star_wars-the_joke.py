@@ -96,7 +96,7 @@ class Player(pygame.sprite.Sprite):
             elif sh == 1 and equip == 1 and ju == 0:
                 if pressed[0]:
                     self.shotgun()
-            self.rect.x = pos[0] - 50
+            self.rect.x = pos[0] - 62
             self.rect.y = pos[1] - 80
         if self.rect.left > x - 110:
             self.rect.right = x - 10
@@ -172,6 +172,7 @@ def game():
                         for_file.append(int(i))
                 max_score = max(for_file)
         return max_score
+
     if functions.hardmode:
         pygame.mixer.music.load(os.path.join(snd_folder, 'fight.mp3'))
     else:
@@ -257,7 +258,7 @@ def game():
     all_sprites.add(player)
 
     for i in range(enemy_vaders):
-        if random.random() > 0:
+        if random.random() > loading.chanse_triple_fighter:
             imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses, all_sprites)
             all_sprites.add(imp)
             vaders_group.add(imp)
@@ -279,6 +280,7 @@ def game():
     all_sprites.add(heart5)
     all_sprites.add(hearts)
 
+    best_score()
     loading.ready.play()
     for i in [3, 2, 1, 0]:
         screen.blit(random_background, background_rect)
@@ -428,7 +430,10 @@ def game():
             last_boss = nowboss
             health_boss += 10
             health_boss2 = health_boss
-            boss = boss_game.Boss(jelly, putin, virus, vaders, death, sprites, all_sprites, drobs_boss)
+            if random.random() > loading.chanse_dead_boss:
+                boss = boss_game.Boss(jelly, putin, virus, vaders, death, sprites, all_sprites, drobs_boss)
+            else:
+                boss = boss_game.Dead(sprites, all_sprites, drobs_boss)
             if functions.hardmode:
                 boss.hard()
             all_sprites.add(boss)
@@ -465,22 +470,22 @@ def game():
         boom_m = pygame.sprite.spritecollide(player, meteors, False, pygame.sprite.collide_circle)
         boom_bullet_boss = pygame.sprite.spritecollide(player, drobs_boss, True, pygame.sprite.collide_circle)
 
-        if bosses:
+        for i in bosses:
             boom_boss = pygame.sprite.groupcollide(bullets, bosses, True, False)
             boom_boss_drob = pygame.sprite.groupcollide(drobs, bosses, True, False)
 
-            for i in boom_boss:
+            for _ in boom_boss:
                 if functions.godmode:
                     health_boss2 -= 10
-                elif boss.rect.y < -200:
+                elif i.rect.y < -200:
                     health_boss2 = health_boss
                 else:
                     health_boss2 -= 0.5
 
-            for i in boom_boss_drob:
+            for _ in boom_boss_drob:
                 if functions.godmode:
                     health_boss2 -= 10
-                elif boss.rect.y < -200:
+                elif i.rect.y < -200:
                     health_boss2 = health_boss
                 elif functions.hardmode:
                     health_boss2 -= 1
@@ -488,23 +493,22 @@ def game():
                     health_boss2 -= 1.5
 
             if health_boss2 <= 0:
-                boss.kill()
-                bosses = pygame.sprite.Group()
-                for i in drobs_boss:
+                i.kill()
+                for j in drobs_boss:
                     if random.randint(1, 2) == 1:
-                        expl = explosions.Explosion(i.rect.center, 'sm')
+                        expl = explosions.Explosion(j.rect.center, 'sm')
                         all_sprites.add(expl)
                     else:
-                        expl = explosions.Explosion(i.rect.center, 'sm', 2)
+                        expl = explosions.Explosion(j.rect.center, 'sm', 2)
                         all_sprites.add(expl)
-                    i.kill()
+                    j.kill()
                 score += 50
                 loading.boom_snd.play()
-                expl = explosions.Explosion(boss.rect.center, 'hu')
+                expl = explosions.Explosion(i.rect.center, 'hu')
                 all_sprites.add(expl)
                 count_bosses += 3
                 for _ in range(enemy_vaders):
-                    if random.random() > 0:
+                    if random.random() > loading.chanse_triple_fighter:
                         imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem,
                                                 count_bosses, all_sprites)
                         all_sprites.add(imp)
@@ -821,7 +825,7 @@ def game():
             all_sprites.add(player)
 
             for i in range(enemy_vaders):
-                if random.random() > 0:
+                if random.random() > loading.chanse_triple_fighter:
                     imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem,
                                             count_bosses, all_sprites)
                     all_sprites.add(imp)
