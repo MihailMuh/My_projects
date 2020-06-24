@@ -215,6 +215,9 @@ def game():
     hearts = pygame.sprite.Group()
     meteors = pygame.sprite.Group()
     buttons = pygame.sprite.Group()
+    fire = pygame.sprite.Group()
+    factories = pygame.sprite.Group()
+    minions = pygame.sprite.Group()
 
     player = Player()
     inv = inventar.Inventar()
@@ -241,7 +244,6 @@ def game():
     equip = 0
     heal = False
     sh_fly = False
-    a = True
     score = 0
     gameover = False
     health_boss2 = health_boss
@@ -270,6 +272,13 @@ def game():
         m = meteor.Meteor(bosses, speed_enem, count_bosses)
         all_sprites.add(m)
         meteors.add(m)
+
+    attention = opponents.Attention(fire)
+    attention.hide()
+    fire.add(attention)
+
+    rocket = opponents.Rocket(sprites, all_sprites)
+    fire.add(rocket)
 
     all_sprites.add(inv)
     all_sprites.add(rifle_big)
@@ -333,7 +342,7 @@ def game():
                     loading.pause_snd.stop()
                     pygame.mixer.music.unpause()
 
-    while a:
+    while True:
         clock.tick(FPS)
         nowboss = pygame.time.get_ticks()
 
@@ -426,6 +435,9 @@ def game():
                 if distance <= 200:
                     i.shoot()
 
+        for i in minions:
+            i.shoot()
+
         if (nowboss - last_boss > boss_time) and not bosses:
             last_boss = nowboss
             health_boss += 10
@@ -452,6 +464,18 @@ def game():
                     all_sprites.add(sh_fly)
                     shotgun_fly.add(sh_fly)
 
+        if random.random() > 0.997:
+            rocket.start()
+            attention.visible(rocket.rect.centerx)
+
+        if rocket.rect.y >= -35:
+            attention.hide()
+
+        if (random.random() > 0.9955) and not factories:
+            f = opponents.Factory(all_sprites, sprites, bosses, drobs_boss, minions)
+            all_sprites.add(f)
+            factories.add(f)
+
         if sh_fly:
             boom_sh_fly = pygame.sprite.spritecollide(player, shotgun_fly, True, pygame.sprite.collide_circle)
             if boom_sh_fly:
@@ -464,11 +488,28 @@ def game():
                 all_sprites.remove(rifle_big)
                 all_sprites.add(rifle)
 
+        if heal:
+            boom_heal = pygame.sprite.spritecollide(player, powerups, True, pygame.sprite.collide_circle)
+            if boom_heal:
+                hits = 0
+                heart5.change(loading.ful_heart, 165 + 300, 310)
+                heart4.change(loading.ful_heart, 165 + 225, 310)
+                heart3.change(loading.ful_heart, 165 + 150, 310)
+                heart2.change(loading.ful_heart, 165 + 75, 310)
+                heart1.change(loading.ful_heart, 165, 310)
+                loading.heal_sound.play()
+
         boom_b = pygame.sprite.groupcollide(vaders_group, bullets, False, True, pygame.sprite.collide_circle)
         boom_sh = pygame.sprite.groupcollide(vaders_group, drobs, False, True)
         boom = pygame.sprite.spritecollide(player, vaders_group, False, pygame.sprite.collide_circle)
         boom_m = pygame.sprite.spritecollide(player, meteors, False, pygame.sprite.collide_circle)
         boom_bullet_boss = pygame.sprite.spritecollide(player, drobs_boss, True, pygame.sprite.collide_circle)
+        boom_rocket = pygame.sprite.spritecollide(player, fire, False, pygame.sprite.collide_circle)
+        boom_factory = pygame.sprite.groupcollide(factories, bullets, False, True)
+        boom_factory_sh = pygame.sprite.groupcollide(factories, drobs, False, True)
+        boom_minion = pygame.sprite.groupcollide(minions, bullets, False, True, pygame.sprite.collide_circle)
+        boom_minion_sh = pygame.sprite.groupcollide(minions, drobs, False, True, pygame.sprite.collide_circle)
+        boom_minion_pl = pygame.sprite.spritecollide(player, minions, False, pygame.sprite.collide_circle)
 
         for i in bosses:
             boom_boss = pygame.sprite.groupcollide(bullets, bosses, True, False)
@@ -522,22 +563,40 @@ def game():
                     all_sprites.add(m)
                     meteors.add(m)
 
-        if heal:
-            boom_heal = pygame.sprite.spritecollide(player, powerups, True, pygame.sprite.collide_circle)
-            if boom_heal:
-                hits = 0
-                heart5.change(loading.ful_heart, 165 + 300, 310)
-                heart4.change(loading.ful_heart, 165 + 225, 310)
-                heart3.change(loading.ful_heart, 165 + 150, 310)
-                heart2.change(loading.ful_heart, 165 + 75, 310)
-                heart1.change(loading.ful_heart, 165, 310)
-                loading.heal_sound.play()
+        for hit in boom_factory:
+            hit.damage()
+            if hit.health <= 0:
+                score += 10
+
+        for hit in boom_factory_sh:
+            hit.damage()
+            if hit.health <= 0:
+                score += 10
+
+        for i in boom_minion:
+            i.damage()
+
+        for i in boom_minion_sh:
+            i.damage()
+
+        for i in boom_minion_pl:
+            if not functions.godmode:
+                hits += 1
+            expl = explosions.Explosion(i.rect.center, 'sm', 2)
+            all_sprites.add(expl)
+            i.kill()
 
         for i in boom_bullet_boss:
             if not functions.godmode:
                 hits += 1
             expl = explosions.Explosion(i.rect.center, 'sm', 2)
             all_sprites.add(expl)
+
+        for i in boom_rocket:
+            if i != attention:
+                if not functions.godmode:
+                    hits += 100
+                rocket.damage()
 
         for hit3 in boom_m:
             loading.metal.play()
@@ -597,128 +656,33 @@ def game():
             achievment.deathes()
             best_score()
 
-            for i in vaders_group:
-                loading.boom_snd.play()
-                if random.randint(1, 2) == 1:
-                    expl = explosions.Explosion(i.rect.center, 'lg')
-                    all_sprites.add(expl)
-                else:
-                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
-                    all_sprites.add(expl)
-                screen.blit(gameover_bg, gameover_rect)
-                all_sprites.update()
-                i.kill()
-                all_sprites.draw(screen)
-                draw_text(screen, 'Счёт:', 30, x // 2, 10)
-                draw_text(screen, str(score), 30, x // 2, 40)
-                draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
-                draw_text(screen, str(max_score), 30, x - 200, 40)
-                for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            pygame.mixer.music.pause()
-                            loading.pause_snd.play(-1)
-
-                            btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                            btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', preview)
-                            btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
-                            buttons.add(btn_quit)
-                            buttons.add(btn_menu)
-                            buttons.add(btn_start)
-
-                            waiting = True
-                            while waiting:
-                                clock.tick(10)
-                                for event in pygame.event.get():
-                                    if event.type == pygame.KEYDOWN:
-                                        if event.key == pygame.K_ESCAPE:
-                                            waiting = False
-                                buttons.update()
-                                buttons.draw(screen)
-                                draw_text(screen, btn_quit.text, 40, btn_quit.rect.x + btn_quit.width // 2,
-                                          btn_quit.rect.y)
-                                draw_text(screen, btn_menu.text, 40, btn_menu.rect.x + btn_menu.width // 2,
-                                          btn_menu.rect.y)
-                                draw_text(screen, btn_start.text, 40, btn_start.rect.x + btn_start.width // 2,
-                                          btn_start.rect.y)
-                                pygame.display.flip()
-                                pygame.display.update()
-
-                            loading.pause_snd.stop()
-                            pygame.mixer.music.unpause()
-                pygame.display.flip()
-
-            loading.boom_snd.play()
-            if random.randint(1, 2) == 1:
-                expl = explosions.Explosion(player.rect.center, 'hu')
-                all_sprites.add(expl)
-            else:
-                expl = explosions.Explosion(player.rect.center, 'hu', 2)
-                all_sprites.add(expl)
-            screen.blit(gameover_bg, gameover_rect)
-            all_sprites.update()
-            player.kill()
-            all_sprites.draw(screen)
-            draw_text(screen, 'Счёт:', 30, x // 2, 10)
-            draw_text(screen, str(score), 30, x // 2, 40)
-            draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
-            draw_text(screen, str(max_score), 30, x - 200, 40)
-            stop()
-            for i in meteors:
-                loading.boom_snd.play()
-                if random.randint(1, 2) == 1:
-                    expl = explosions.Explosion(i.rect.center, 'lg')
-                    all_sprites.add(expl)
-                else:
-                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
-                    all_sprites.add(expl)
-                screen.blit(gameover_bg, gameover_rect)
-                all_sprites.update()
-                i.kill()
-                all_sprites.draw(screen)
-                draw_text(screen, 'Счёт:', 30, x // 2, 10)
-                draw_text(screen, str(score), 30, x // 2, 40)
-                draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
-                draw_text(screen, str(max_score), 30, x - 200, 40)
-                stop()
-                pygame.display.flip()
-
-            for i in bosses:
-                loading.boom_snd.play()
-                if random.randint(1, 2) == 1:
-                    expl = explosions.Explosion(i.rect.center, 'hu')
-                    all_sprites.add(expl)
-                else:
-                    expl = explosions.Explosion(i.rect.center, 'hu', 2)
-                    all_sprites.add(expl)
-                all_sprites.update()
-                i.kill()
-                all_sprites.draw(screen)
-                draw_text(screen, 'Счёт:', 30, x // 2, 10)
-                draw_text(screen, str(score), 30, x // 2, 40)
-                draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
-                draw_text(screen, str(max_score), 30, x - 200, 40)
-                stop()
-                pygame.display.flip()
-
-            for i in drobs_boss:
-                screen.blit(gameover_bg, gameover_rect)
-                loading.boom_snd.play()
-                if random.randint(1, 2) == 1:
-                    expl = explosions.Explosion(i.rect.center, 'lg')
-                    all_sprites.add(expl)
-                else:
-                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
-                    all_sprites.add(expl)
-                all_sprites.update()
-                i.kill()
-                all_sprites.draw(screen)
-                draw_text(screen, 'Счёт:', 30, x // 2, 10)
-                draw_text(screen, str(score), 30, x // 2, 40)
-                draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
-                draw_text(screen, str(max_score), 30, x - 200, 40)
-                stop()
-                pygame.display.flip()
+            for i in all_sprites:
+                if i not in hearts:
+                    loading.boom_snd.play()
+                    if (i == player) or (i == rocket) or (i in factories):
+                        if random.randint(1, 2) == 1:
+                            expl = explosions.Explosion(player.rect.center, 'hu')
+                            all_sprites.add(expl)
+                        else:
+                            expl = explosions.Explosion(player.rect.center, 'hu', 2)
+                            all_sprites.add(expl)
+                    else:
+                        if random.randint(1, 2) == 1:
+                            expl = explosions.Explosion(i.rect.center, 'lg')
+                            all_sprites.add(expl)
+                        else:
+                            expl = explosions.Explosion(i.rect.center, 'lg', 2)
+                            all_sprites.add(expl)
+                    screen.blit(gameover_bg, gameover_rect)
+                    all_sprites.update()
+                    i.kill()
+                    all_sprites.draw(screen)
+                    draw_text(screen, 'Счёт:', 30, x // 2, 10)
+                    draw_text(screen, str(score), 30, x // 2, 40)
+                    draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
+                    draw_text(screen, str(max_score), 30, x - 200, 40)
+                    stop()
+                    pygame.display.flip()
 
             while gameover:
                 clock.tick(FPS)
@@ -784,6 +748,9 @@ def game():
             hearts = pygame.sprite.Group()
             meteors = pygame.sprite.Group()
             buttons = pygame.sprite.Group()
+            fire = pygame.sprite.Group()
+            factories = pygame.sprite.Group()
+            minions = pygame.sprite.Group()
 
             player = Player()
             inv = inventar.Inventar()
@@ -810,15 +777,14 @@ def game():
             equip = 0
             heal = False
             sh_fly = False
-            a = True
             score = 0
             gameover = False
             health_boss2 = health_boss
             if functions.hardmode:
-                enemy_vaders = 23
-                enemy_meteors = 10
-            else:
                 enemy_vaders = 20
+                enemy_meteors = 8
+            else:
+                enemy_vaders = 17
                 enemy_meteors = 0
             waiting = False
 
@@ -839,6 +805,13 @@ def game():
                 all_sprites.add(m)
                 meteors.add(m)
 
+            attention = opponents.Attention(fire)
+            attention.hide()
+            fire.add(attention)
+
+            rocket = opponents.Rocket(sprites, all_sprites)
+            fire.add(rocket)
+
             all_sprites.add(inv)
             all_sprites.add(rifle_big)
             all_sprites.add(heart1)
@@ -848,6 +821,7 @@ def game():
             all_sprites.add(heart5)
             all_sprites.add(hearts)
 
+            best_score()
             loading.ready.play()
             for i in [3, 2, 1, 0]:
                 screen.blit(random_background, background_rect)
@@ -918,6 +892,8 @@ def game():
         draw_text(screen, str(max_score), 30, x - 200, 40)
         if bosses:
             functions.draw_health_bar_boss(screen, 30, 100, health_boss2, health_boss)
+        fire.update()
+        fire.draw(screen)
         pygame.display.flip()
     return
 

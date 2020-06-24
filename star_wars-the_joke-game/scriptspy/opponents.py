@@ -215,3 +215,179 @@ class TripleFighter(pygame.sprite.Sprite):
                     expl = explosions.Explosion(self.rect.center, 'lg', 2)
                     self.all_sprites2.add(expl)
                 self.kill()
+
+
+class Minion(pygame.sprite.Sprite):
+    def __init__(self, sprites2, bosses2, all_sprites2, drobs2):
+        pygame.sprite.Sprite.__init__(self)
+        self.radius = 70
+        self.angle = 0
+        self.sprites2 = sprites2
+        self.all_sprites2 = all_sprites2
+        self.bosses2 = bosses2
+        self.drobs2 = drobs2
+        self.health = 1
+
+        self.image = loading.img_minion
+        self.image = pygame.transform.scale(self.image, (80, 80))
+        self.rect = self.image.get_rect()
+
+        if self.sprites2:
+            pygame.draw.circle(self.image, (0, 0, 100), self.rect.center, self.radius)
+        self.rect.centerx = random.randrange(system_size.x // 2 - 300, system_size.x // 2 + 300)
+        self.rect.bottom = 200
+        self.speedy_imp = random.randrange(4, 8)
+        self.speedx_imp = random.randrange(-2, 2)
+        self.shotgun_time = 2500
+        self.last_shotgun = pygame.time.get_ticks()
+
+    def rotate(self):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        rel_x, rel_y = mouse_x - self.rect.x, mouse_y - self.rect.y
+        self.angle = -((180 / math.pi) * -math.atan2(rel_y, rel_x))
+
+    def shoot(self):
+        now_sh = pygame.time.get_ticks()
+        if now_sh - self.last_shotgun > self.shotgun_time:
+            self.last_shotgun = now_sh
+            self.rotate()
+            drob = shoots.BulletEnemy('drob', (self.rect.centerx, self.rect.bottom), self.angle)
+            self.all_sprites2.add(drob)
+            self.drobs2.add(drob)
+            loading.laser_sound.play()
+
+    def damage(self):
+        self.health -= 1
+
+    def update(self):
+        self.rect.y += self.speedy_imp
+        self.rect.x += self.speedx_imp
+        if (self.rect.top > system_size.y + 70) or (self.rect.left > system_size.x + 50) or (self.rect.right < 0):
+            self.kill()
+
+        if self.health <= 0:
+            loading.boom_snd.play()
+            if random.randint(1, 2) == 1:
+                expl = explosions.Explosion(self.rect.center, 'lg')
+                self.all_sprites2.add(expl)
+            else:
+                expl = explosions.Explosion(self.rect.center, 'lg', 2)
+                self.all_sprites2.add(expl)
+            self.kill()
+
+
+class Factory(pygame.sprite.Sprite):
+    def __init__(self, all_sprites2, sprites2, bosses2, drobs2, place):
+        pygame.sprite.Sprite.__init__(self)
+        self.all_sprites2 = all_sprites2
+        self.sprites2 = sprites2
+        self.bosses2 = bosses2
+        self.drobs2 = drobs2
+        self.place = place
+
+        self.health = 16
+
+        self.image = loading.img_factory
+        self.image = pygame.transform.scale(self.image, (700, 200))
+        self.rect = self.image.get_rect()
+
+        self.rect.centerx = system_size.x // 2
+        self.rect.bottom = -400
+        self.speedy_imp = 7
+        self.spawn_time = 800
+        self.last_spawn = pygame.time.get_ticks()
+
+    def spawn(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_spawn > self.spawn_time:
+            self.last_spawn = now
+            minion = Minion(self.sprites2, self.bosses2, self.all_sprites2, self.drobs2)
+            self.all_sprites2.add(minion)
+            self.place.add(minion)
+
+    def damage(self):
+        self.health -= 0.7
+
+    def update(self):
+        self.rect.y += self.speedy_imp
+        if self.rect.y >= 0:
+            self.speedy_imp = 0
+            self.spawn()
+        if self.health <= 0:
+            loading.boom_snd.play()
+            if random.randint(1, 2) == 1:
+                expl = explosions.Explosion(self.rect.center, 'hu')
+                self.all_sprites2.add(expl)
+            else:
+                expl = explosions.Explosion(self.rect.center, 'hu', 2)
+                self.all_sprites2.add(expl)
+            self.kill()
+
+
+class Rocket(pygame.sprite.Sprite):
+    def __init__(self, sprites2, all_sprites2):
+        pygame.sprite.Sprite.__init__(self)
+        self.radius = 25
+        self.sprites2 = sprites2
+        self.all_sprites2 = all_sprites2
+        self.move = False
+        self.health = 1
+
+        self.image = loading.img_rocket
+        self.image = pygame.transform.scale(self.image, (100, 50))
+        self.image = pygame.transform.rotate(self.image, 90)
+        self.rect = self.image.get_rect()
+
+        if self.sprites2:
+            pygame.draw.circle(self.image, (0, 0, 100), self.rect.center, self.radius)
+        self.rect.centerx = random.randrange(50, system_size.x - 70)
+        self.rect.bottom = -1000
+        self.speedy_imp = random.randrange(55, 75)
+
+    def damage(self):
+        self.health -= 1
+
+    def start(self):
+        self.move = True
+
+    def update(self):
+        if self.move:
+            self.rect.y += self.speedy_imp
+            if self.rect.top > system_size.y + 100:
+                self.move = False
+                self.rect.bottom = -1000
+                self.speedy_imp = random.randrange(55, 75)
+                self.rect.centerx = random.randrange(50, system_size.x - 70)
+
+            if self.health <= 0:
+                loading.boom_snd.play()
+                if random.randint(1, 2) == 1:
+                    expl = explosions.Explosion(self.rect.center, 'hu')
+                    self.all_sprites2.add(expl)
+                else:
+                    expl = explosions.Explosion(self.rect.center, 'hu', 2)
+                    self.all_sprites2.add(expl)
+                self.move = False
+                self.rect.bottom = -1000
+                self.speedy_imp = random.randrange(55, 75)
+                self.rect.centerx = random.randrange(50, system_size.x - 70)
+                self.health = 1
+
+
+class Attention(pygame.sprite.Sprite):
+    def __init__(self, fire2):
+        pygame.sprite.Sprite.__init__(self)
+        self.fire2 = fire2
+
+        self.image = loading.img_attention
+        self.image = pygame.transform.scale(self.image, (60, 60))
+        self.rect = self.image.get_rect()
+
+        self.rect.centerx = 120
+        self.rect.bottom = 70
+
+    def hide(self):
+        self.rect.centerx = 10000
+
+    def visible(self, x):
+        self.rect.centerx = x

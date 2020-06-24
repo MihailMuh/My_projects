@@ -116,7 +116,7 @@ class BulletEnemy(pygame.sprite.Sprite):
             self.angle = angle
         self.image = pygame.transform.rotate(self.image, int(-self.angle+90))
         self.rect = self.image.get_rect(center=pos)
-        offset = Vector2(15, 0).rotate(self.angle)
+        offset = Vector2(10, 0).rotate(self.angle)
         self.pos = Vector2(self.pos) + offset
         self.velocity = Vector2(1, 0).rotate(self.angle) * 9
 
