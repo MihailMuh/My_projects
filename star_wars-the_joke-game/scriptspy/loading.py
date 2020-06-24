@@ -116,5 +116,5 @@ for i in range(12):
     img_sm2 = pygame.transform.scale(img2, (70, 55))
     explosion_anim2['sm'].append(img_sm2)
 
-chanse_triple_fighter = 0
-chanse_dead_boss = 0
+chanse_triple_fighter = 0.15
+chanse_dead_boss = 0.3
