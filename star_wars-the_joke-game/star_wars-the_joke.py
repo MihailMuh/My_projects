@@ -5,7 +5,7 @@ from tkinter.ttk import Radiobutton
 import random
 import os
 import sys
-from PIL import ImageTk, Image
+from PIL import ImageTk
 import time
 from scriptspy import inventar, icons, support, button, explosions, functions, loading, shoots, character, heart, boss_game, opponents, meteor, achievment
 
@@ -28,7 +28,6 @@ bosses = pygame.sprite.Group()
 vaders_group = pygame.sprite.Group()
 
 score = 0
-FPS = 25
 health_boss = 30
 sprites = False
 jelly = False
@@ -36,6 +35,8 @@ putin = False
 virus = False
 vaders = True
 death = False
+ship_player = True
+ship_gunner = False
 for_file = []
 key_btn = 0
 mouse_btn = 1
@@ -46,104 +47,6 @@ ju = 1
 equip = 0
 speed_enem = 4
 max_score = 0
-
-
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # it should be here
-        self.image = loading.img_npc
-        self.image = pygame.transform.scale(loading.img_npc, (130, 150))
-        self.rect = self.image.get_rect()
-        self.radius = 40
-        if sprites:
-            pygame.draw.circle(self.image, (0, 0, 100), self.rect.center, self.radius)
-        self.rect.centerx = x // 2
-        self.rect.bottom = y // 2 + y // 3
-        self.speedx = 0
-        self.speedy = 0
-        self.shoot_time = 120
-        self.last_shot = pygame.time.get_ticks()
-        self.shotgun_time = 800
-        self.last_shotgun = pygame.time.get_ticks()
-
-    def update(self):
-        self.speedx = 0
-        self.speedy = 0
-        if key_btn == 1 and mouse_btn == 0:
-            key = pygame.key.get_pressed()
-            if key[pygame.K_d]:
-                self.speedx = 30
-            if key[pygame.K_a]:
-                self.speedx = -30
-            if key[pygame.K_w]:
-                self.speedy = -30
-            if key[pygame.K_s]:
-                self.speedy = 30
-            if ju == 1 and sh == 0:
-                if key[pygame.K_SPACE]:
-                    self.shoot()
-            elif sh == 1 and equip == 1 and ju == 0:
-                if key[pygame.K_SPACE]:
-                    self.shotgun()
-            self.rect.x += self.speedx
-            self.rect.y += self.speedy
-        elif key_btn == 0 and mouse_btn == 1:
-            pos = pygame.mouse.get_pos()
-            pressed = pygame.mouse.get_pressed()
-            if ju == 1 and sh == 0:
-                if pressed[0]:
-                    self.shoot()
-            elif sh == 1 and equip == 1 and ju == 0:
-                if pressed[0]:
-                    self.shotgun()
-            self.rect.x = pos[0] - 62
-            self.rect.y = pos[1] - 80
-        if self.rect.left > x - 110:
-            self.rect.right = x - 10
-        if self.rect.right < 110:
-            self.rect.left = 10
-        if self.rect.top > y - 200:
-            self.rect.top = y - 200
-        if self.rect.bottom < 160:
-            self.rect.bottom = 160
-
-    def shoot(self):
-        global all_sprites
-        global bullets
-        now = pygame.time.get_ticks()
-        if now - self.last_shot > self.shoot_time:
-            self.last_shot = now
-            bullet = shoots.Bullet(self.rect.centerx + 12, self.rect.bottom - 87)
-            bullet2 = shoots.Bullet(self.rect.centerx + 23, self.rect.bottom - 87)
-            all_sprites.add(bullet)
-            bullets.add(bullet)
-            all_sprites.add(bullet2)
-            bullets.add(bullet2)
-            loading.laser_sound.play()
-
-    def shotgun(self):
-        global all_sprites
-        global drobs
-
-        now_sh = pygame.time.get_ticks()
-        if now_sh - self.last_shotgun > self.shotgun_time:
-            self.last_shotgun = now_sh
-            drob = shoots.Drob('drob', self.rect.centerx + 15, self.rect.bottom - 85)
-            all_sprites.add(drob)
-            drobs.add(drob)
-            drob = shoots.Drob('drob2', self.rect.centerx - 5, self.rect.bottom - 85)
-            all_sprites.add(drob)
-            drobs.add(drob)
-            drob = shoots.Drob('drob3', self.rect.centerx + 20, self.rect.bottom - 85)
-            all_sprites.add(drob)
-            drobs.add(drob)
-            drob = shoots.Drob('drob4', self.rect.centerx + 3, self.rect.bottom - 85)
-            all_sprites.add(drob)
-            drobs.add(drob)
-            drob = shoots.Drob('drob5', self.rect.centerx + 17, self.rect.bottom - 85)
-            all_sprites.add(drob)
-            drobs.add(drob)
-            loading.shotgun_sound.play(0)
 
 
 def game():
@@ -190,10 +93,11 @@ def game():
 
     background_images = []
     background_list = ['background1.jpg', 'background2.jpg', 'background3.jpg']
+
     for img in background_list:
         if img == 'background1.jpg':
             bd = pygame.image.load(os.path.join(img_folder, img))
-            bd = pygame.transform.scale(bd, (x+200, y))
+            bd = pygame.transform.scale(bd, (x + 100, y))
             background_images.append(bd)
         else:
             bd = pygame.image.load(os.path.join(img_folder, img))
@@ -218,8 +122,12 @@ def game():
     fire = pygame.sprite.Group()
     factories = pygame.sprite.Group()
     minions = pygame.sprite.Group()
+    player_gunner_npc_group = pygame.sprite.Group()
 
-    player = Player()
+    if ship_gunner:
+        player = character.Gunner(all_sprites, bullets)
+    elif ship_player:
+        player = character.Player(sprites, key_btn, mouse_btn, ju, sh, equip, all_sprites, bullets, drobs)
     inv = inventar.Inventar()
     shotgun = icons.Icon_sh()
     shotgun_big = icons.Icon_sh_big()
@@ -246,6 +154,7 @@ def game():
     sh_fly = False
     score = 0
     gameover = False
+    player_gunner_npc = False
     health_boss2 = health_boss
     if functions.hardmode:
         enemy_vaders = 20
@@ -256,16 +165,19 @@ def game():
     boss_time = 50000
     last_boss = pygame.time.get_ticks()
     waiting = False
+    FPS = 60
 
     all_sprites.add(player)
 
     for i in range(enemy_vaders):
         if random.random() > loading.chanse_triple_fighter:
-            imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem, count_bosses, all_sprites)
+            imp = opponents.Imperia(jelly, putin, virus, vaders, death, sprites, bosses, speed_enem,
+                                    count_bosses, all_sprites)
             all_sprites.add(imp)
             vaders_group.add(imp)
         else:
-            imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss)
+            imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss,
+                                          player.rect.center[0], player.rect.center[1])
             all_sprites.add(imp)
             vaders_group.add(imp)
     for i in range(enemy_meteors):
@@ -298,6 +210,7 @@ def game():
         draw_text(screen, str(score), 30, x // 2, 40)
         draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
         draw_text(screen, str(max_score), 30, x - 200, 40)
+        draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
         if i == 0:
             draw_text(screen, 'Стреляй!', x // 6, x // 2, 250)
         else:
@@ -307,44 +220,14 @@ def game():
 
     pygame.event.clear()
 
-    def stop():
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.mixer.music.pause()
-                    loading.pause_snd.play(-1)
-
-                    btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
-                    btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', preview)
-                    btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
-                    buttons.add(btn_quit)
-                    buttons.add(btn_menu)
-                    buttons.add(btn_start)
-
-                    waiting = True
-                    while waiting:
-                        clock.tick(10)
-                        for event in pygame.event.get():
-                            if event.type == pygame.KEYDOWN:
-                                if event.key == pygame.K_ESCAPE:
-                                    waiting = False
-                        buttons.update()
-                        buttons.draw(screen)
-                        draw_text(screen, btn_quit.text, 40, btn_quit.rect.x + btn_quit.width // 2,
-                                  btn_quit.rect.y)
-                        draw_text(screen, btn_menu.text, 40, btn_menu.rect.x + btn_menu.width // 2,
-                                  btn_menu.rect.y)
-                        draw_text(screen, btn_start.text, 40, btn_start.rect.x + btn_start.width // 2,
-                                  btn_start.rect.y)
-                        pygame.display.flip()
-                        pygame.display.update()
-
-                    loading.pause_snd.stop()
-                    pygame.mixer.music.unpause()
-
     while True:
         clock.tick(FPS)
         nowboss = pygame.time.get_ticks()
+        key = pygame.key.get_pressed()
+        if (key[pygame.K_DOWN]) and (FPS >= 2):
+            FPS -= 1
+        if key[pygame.K_UP]:
+            FPS += 1
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -431,11 +314,13 @@ def game():
 
         for i in vaders_group:
             if i.radius == 70:
+                i.sufferx, i.suffery = player.rect.center[0], player.rect.center[1]
                 distance = functions.rect_distance(player.rect, i.rect)
                 if distance <= 200:
                     i.shoot()
 
         for i in minions:
+            i.sufferx, i.suffery = player.rect.center[0], player.rect.center[1]
             i.shoot()
 
         if (nowboss - last_boss > boss_time) and not bosses:
@@ -451,32 +336,39 @@ def game():
             all_sprites.add(boss)
             bosses.add(boss)
 
-        if random.random() > 0.9995:
+        if random.random() > loading.chanse_heal:
             if not powerups:
                 heal = support.Health()
                 all_sprites.add(heal)
                 powerups.add(heal)
 
         if score >= 50:
-            if random.random() > 0.99:
+            if random.random() > loading.chanse_shotgun:
                 if not shotgun_fly and equip != 1:
                     sh_fly = support.Fly_sh()
                     all_sprites.add(sh_fly)
                     shotgun_fly.add(sh_fly)
 
-        if random.random() > 0.997:
+        if (score >= 100) and (functions.newgunner == 0) and (not player_gunner_npc_group) and (functions.newgunner == 0):
+            player_gunner_npc = opponents.NewPlayer(sprites)
+            all_sprites.add(player_gunner_npc)
+            player_gunner_npc_group.add(player_gunner_npc)
+            functions.spawnsplayer()
+            functions.newplayer()
+
+        if random.random() > loading.chanse_rocket:
             rocket.start()
             attention.visible(rocket.rect.centerx)
 
         if rocket.rect.y >= -35:
             attention.hide()
 
-        if (random.random() > 0.9955) and not factories:
-            f = opponents.Factory(all_sprites, sprites, bosses, drobs_boss, minions)
+        if (random.random() > loading.chanse_factory) and not factories:
+            f = opponents.Factory(all_sprites, sprites, bosses, drobs_boss, minions, player.rect.center[0], player.rect.center[1])
             all_sprites.add(f)
             factories.add(f)
 
-        if sh_fly:
+        if sh_fly and (player.radius == 40):
             boom_sh_fly = pygame.sprite.spritecollide(player, shotgun_fly, True, pygame.sprite.collide_circle)
             if boom_sh_fly:
                 random.choice(loading.reload_sounds).play()
@@ -487,6 +379,17 @@ def game():
                 all_sprites.remove(shotgun)
                 all_sprites.remove(rifle_big)
                 all_sprites.add(rifle)
+        elif sh_fly and (player.radius > 40):
+            boom_sh_fly = pygame.sprite.groupcollide(shotgun_fly, bullets, False, True, pygame.sprite.collide_circle)
+            for i in boom_sh_fly:
+                loading.boom_snd.play()
+                if random.randint(1, 2) == 1:
+                    expl = explosions.Explosion(i.rect.center, 'lg')
+                    all_sprites.add(expl)
+                else:
+                    expl = explosions.Explosion(i.rect.center, 'lg', 2)
+                    all_sprites.add(expl)
+            sh_fly.kill()
 
         if heal:
             boom_heal = pygame.sprite.spritecollide(player, powerups, True, pygame.sprite.collide_circle)
@@ -498,6 +401,13 @@ def game():
                 heart2.change(loading.ful_heart, 165 + 75, 310)
                 heart1.change(loading.ful_heart, 165, 310)
                 loading.heal_sound.play()
+
+        if player_gunner_npc:
+            boom_player_gunner_npc = pygame.sprite.spritecollide(player, player_gunner_npc_group,
+                                                                 True, pygame.sprite.collide_circle)
+            if boom_player_gunner_npc:
+                functions.unlockplayer()
+                functions.newplayer()
 
         boom_b = pygame.sprite.groupcollide(vaders_group, bullets, False, True, pygame.sprite.collide_circle)
         boom_sh = pygame.sprite.groupcollide(vaders_group, drobs, False, True)
@@ -555,7 +465,8 @@ def game():
                         all_sprites.add(imp)
                         vaders_group.add(imp)
                     else:
-                        imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss)
+                        imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss,
+                                                      player.rect.center[0], player.rect.center[1])
                         all_sprites.add(imp)
                         vaders_group.add(imp)
                 for _ in range(enemy_meteors):
@@ -564,7 +475,10 @@ def game():
                     meteors.add(m)
 
         for hit in boom_factory:
-            hit.damage()
+            if player.radius == 40:
+                hit.damage('small')
+            else:
+                hit.damage('mini')
             if hit.health <= 0:
                 score += 10
 
@@ -574,21 +488,28 @@ def game():
                 score += 10
 
         for i in boom_minion:
-            i.damage()
+            if player.radius == 40:
+                i.damage('small')
+            else:
+                i.damage('mini')
 
         for i in boom_minion_sh:
             i.damage()
 
         for i in boom_minion_pl:
             if not functions.godmode:
-                hits += 1
+                if player.radius == 40:
+                    hits += 1
+                else:
+                    hits += 0.5
+            loading.metal.play()
             expl = explosions.Explosion(i.rect.center, 'sm', 2)
             all_sprites.add(expl)
             i.kill()
 
         for i in boom_bullet_boss:
             if not functions.godmode:
-                hits += 1
+                hits += 0.5
             expl = explosions.Explosion(i.rect.center, 'sm', 2)
             all_sprites.add(expl)
 
@@ -601,7 +522,10 @@ def game():
         for hit3 in boom_m:
             loading.metal.play()
             if not functions.godmode:
-                hits += 1
+                if player.radius == 40:
+                    hits += 1
+                else:
+                    hits += 0.5
             if random.randint(1, 2) == 1:
                 expl = explosions.Explosion(hit3.rect.center, 'sm')
                 all_sprites.add(expl)
@@ -614,7 +538,10 @@ def game():
             hit3.rot_speed = random.randrange(-10, 10)
 
         for hit in boom_b:
-            hit.damage('rifle')
+            if player.radius == 40:
+                hit.damage('small')
+            else:
+                hit.damage('mini')
             if hit.health <= 0:
                 if hit.radius == 70:
                     score += 2
@@ -633,9 +560,15 @@ def game():
             loading.metal.play()
             if not functions.godmode:
                 if hit4.radius == 70:
-                    hits += 3
+                    if player.radius == 40:
+                        hits += 3
+                    else:
+                        hits += 1
                 else:
-                    hits += 2
+                    if player.radius == 40:
+                        hits += 2
+                    else:
+                        hits += 1
             if random.randint(1, 2) == 1:
                 expl = explosions.Explosion(hit4.rect.center, 'sm')
                 all_sprites.add(expl)
@@ -657,14 +590,19 @@ def game():
             best_score()
 
             for i in all_sprites:
+                key = pygame.key.get_pressed()
+                if (key[pygame.K_DOWN]) and (FPS >= 2):
+                    FPS -= 1
+                if key[pygame.K_UP]:
+                    FPS += 1
                 if i not in hearts:
                     loading.boom_snd.play()
                     if (i == player) or (i == rocket) or (i in factories):
                         if random.randint(1, 2) == 1:
-                            expl = explosions.Explosion(player.rect.center, 'hu')
+                            expl = explosions.Explosion(i.rect.center, 'hu')
                             all_sprites.add(expl)
                         else:
-                            expl = explosions.Explosion(player.rect.center, 'hu', 2)
+                            expl = explosions.Explosion(i.rect.center, 'hu', 2)
                             all_sprites.add(expl)
                     else:
                         if random.randint(1, 2) == 1:
@@ -681,11 +619,50 @@ def game():
                     draw_text(screen, str(score), 30, x // 2, 40)
                     draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
                     draw_text(screen, str(max_score), 30, x - 200, 40)
-                    stop()
+                    draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
+                    for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_ESCAPE:
+                                pygame.mixer.music.pause()
+                                loading.pause_snd.play(-1)
+
+                                btn_quit = button.Buttonpy(x // 2 - 84, 468, 170, 70, screen, 'Выход', super_break)
+                                btn_menu = button.Buttonpy(x // 2 - 150, 378, 300, 70, screen, 'В меню', preview)
+                                btn_start = button.Buttonpy(x // 2 - 180, 288, 360, 70, screen, 'Продолжить', pause)
+                                buttons.add(btn_quit)
+                                buttons.add(btn_menu)
+                                buttons.add(btn_start)
+
+                                waiting = True
+                                while waiting:
+                                    clock.tick(10)
+                                    for event in pygame.event.get():
+                                        if event.type == pygame.KEYDOWN:
+                                            if event.key == pygame.K_ESCAPE:
+                                                waiting = False
+                                    buttons.update()
+                                    buttons.draw(screen)
+                                    draw_text(screen, btn_quit.text, 40, btn_quit.rect.x + btn_quit.width // 2,
+                                              btn_quit.rect.y)
+                                    draw_text(screen, btn_menu.text, 40, btn_menu.rect.x + btn_menu.width // 2,
+                                              btn_menu.rect.y)
+                                    draw_text(screen, btn_start.text, 40, btn_start.rect.x + btn_start.width // 2,
+                                              btn_start.rect.y)
+                                    pygame.display.flip()
+                                    pygame.display.update()
+
+                                loading.pause_snd.stop()
+                                pygame.mixer.music.unpause()
                     pygame.display.flip()
 
+            loading.gameover_phrase.play()
             while gameover:
                 clock.tick(FPS)
+                key = pygame.key.get_pressed()
+                if (key[pygame.K_DOWN]) and (FPS >= 2):
+                    FPS -= 1
+                if key[pygame.K_UP]:
+                    FPS += 1
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
@@ -728,6 +705,7 @@ def game():
                 draw_text(screen, str(score), 30, x // 2, 40)
                 draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
                 draw_text(screen, str(max_score), 30, x - 200, 40)
+                draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
                 all_sprites.update()
                 all_sprites.draw(screen)
                 pygame.display.flip()
@@ -752,7 +730,10 @@ def game():
             factories = pygame.sprite.Group()
             minions = pygame.sprite.Group()
 
-            player = Player()
+            if ship_gunner:
+                player = character.Gunner(all_sprites, bullets)
+            elif ship_player:
+                player = character.Player(sprites, key_btn, mouse_btn, ju, sh, equip, all_sprites, bullets, drobs)
             inv = inventar.Inventar()
             shotgun = icons.Icon_sh()
             shotgun_big = icons.Icon_sh_big()
@@ -787,6 +768,7 @@ def game():
                 enemy_vaders = 17
                 enemy_meteors = 0
             waiting = False
+            FPS = 60
 
             all_sprites.add(player)
 
@@ -797,7 +779,8 @@ def game():
                     all_sprites.add(imp)
                     vaders_group.add(imp)
                 else:
-                    imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss)
+                    imp = opponents.TripleFighter(sprites, bosses, speed_enem, all_sprites, drobs_boss,
+                                                  player.rect.center[0], player.rect.center[1])
                     all_sprites.add(imp)
                     vaders_group.add(imp)
             for i in range(enemy_meteors):
@@ -830,6 +813,7 @@ def game():
                 draw_text(screen, str(score), 30, x // 2, 40)
                 draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
                 draw_text(screen, str(max_score), 30, x - 200, 40)
+                draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
                 if i == 0:
                     draw_text(screen, 'Стреляй!', x // 6, x // 2, 250)
                 else:
@@ -890,6 +874,7 @@ def game():
         draw_text(screen, str(score), 30, x // 2, 40)
         draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
         draw_text(screen, str(max_score), 30, x - 200, 40)
+        draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
         if bosses:
             functions.draw_health_bar_boss(screen, 30, 100, health_boss2, health_boss)
         fire.update()
@@ -937,9 +922,14 @@ def kill_or_die():
     background_images = []
     background_list = ['background1.jpg', 'background2.jpg', 'background3.jpg']
     for img in background_list:
-        bd = pygame.image.load(os.path.join(img_folder, img))
-        bd = pygame.transform.scale(bd, (x, y))
-        background_images.append(bd)
+        if img == 'background1.jpg':
+            bd = pygame.image.load(os.path.join(img_folder, img))
+            bd = pygame.transform.scale(bd, (x + 100, y))
+            background_images.append(bd)
+        else:
+            bd = pygame.image.load(os.path.join(img_folder, img))
+            bd = pygame.transform.scale(bd, (x, y))
+            background_images.append(bd)
     for img in background_images:
         background_rect = img.get_rect()
 
@@ -952,7 +942,10 @@ def kill_or_die():
     bullets = pygame.sprite.Group()
     buttons = pygame.sprite.Group()
 
-    player = Player()
+    if ship_gunner:
+        player = character.Gunner(all_sprites, bullets)
+    elif ship_player:
+        player = character.Player(sprites, key_btn, mouse_btn, ju, sh, equip, all_sprites, bullets, drobs)
     inv = inventar.Inventar()
     shotgun = icons.Icon_sh()
     shotgun_big = icons.Icon_sh_big()
@@ -975,6 +968,7 @@ def kill_or_die():
     equip = 0
     gameover = False
     waiting = False
+    FPS = 60
 
     all_sprites.add(inv)
     all_sprites.add(rifle_big)
@@ -1037,6 +1031,11 @@ def kill_or_die():
 
     while a:
         clock.tick(FPS)
+        key = pygame.key.get_pressed()
+        if (key[pygame.K_DOWN]) and (FPS >= 2):
+            FPS -= 1
+        if key[pygame.K_UP]:
+            FPS += 1
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1137,6 +1136,11 @@ def kill_or_die():
             best_score()
 
             for i in vaders_group:
+                key = pygame.key.get_pressed()
+                if (key[pygame.K_DOWN]) and (FPS >= 2):
+                    FPS -= 1
+                if key[pygame.K_UP]:
+                    FPS += 1
                 loading.boom_snd.play()
                 if random.randint(1, 2) == 1:
                     expl = explosions.Explosion(i.rect.center, 'lg')
@@ -1153,6 +1157,7 @@ def kill_or_die():
                 draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
                 draw_text(screen, str(max_score), 30, x - 200, 40)
                 draw_text(screen, 'Таймер: ' + str(count), 30, 150, 20)
+                draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
                 stop()
                 pygame.display.flip()
 
@@ -1171,11 +1176,17 @@ def kill_or_die():
             draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
             draw_text(screen, str(max_score), 30, x - 200, 40)
             draw_text(screen, 'Таймер: ' + str(count), 30, 150, 20)
+            draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
             all_sprites.update()
             stop()
 
             while gameover:
                 clock.tick(FPS)
+                key = pygame.key.get_pressed()
+                if (key[pygame.K_DOWN]) and (FPS >= 2):
+                    FPS -= 1
+                if key[pygame.K_UP]:
+                    FPS += 1
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
@@ -1224,6 +1235,7 @@ def kill_or_die():
                 draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
                 draw_text(screen, str(max_score), 30, x - 200, 40)
                 draw_text(screen, 'Таймер: ' + str(count), 30, 150, 20)
+                draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
                 pygame.display.flip()
 
             pygame.mixer.music.stop()
@@ -1236,7 +1248,10 @@ def kill_or_die():
             drobs = pygame.sprite.Group()
             buttons = pygame.sprite.Group()
 
-            player = Player()
+            if ship_gunner:
+                player = character.Gunner(all_sprites, bullets)
+            elif ship_player:
+                player = character.Player(sprites, key_btn, mouse_btn, ju, sh, equip, all_sprites, bullets, drobs)
             inv = inventar.Inventar()
             shotgun = icons.Icon_sh()
             shotgun_big = icons.Icon_sh_big()
@@ -1259,6 +1274,7 @@ def kill_or_die():
             equip = 0
             gameover = False
             waiting = False
+            FPS = 60
 
             all_sprites.add(inv)
             all_sprites.add(rifle_big)
@@ -1272,6 +1288,7 @@ def kill_or_die():
                 draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
                 draw_text(screen, str(max_score), 30, x - 200, 40)
                 draw_text(screen, 'Таймер: ' + str(count), 30, 150, 20)
+                draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
                 if i == 0:
                     pygame.mixer.music.load(os.path.join(snd_folder, 'speed.mp3'))
                     pygame.mixer.music.set_volume(0.2)
@@ -1316,7 +1333,12 @@ def kill_or_die():
 
             waiting = True
             while waiting:
-                clock.tick(10)
+                clock.tick(FPS)
+                key = pygame.key.get_pressed()
+                if (key[pygame.K_DOWN]) and (FPS >= 2):
+                    FPS -= 1
+                if key[pygame.K_UP]:
+                    FPS += 1
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
@@ -1342,7 +1364,10 @@ def kill_or_die():
             drobs = pygame.sprite.Group()
             buttons = pygame.sprite.Group()
 
-            player = Player()
+            if ship_gunner:
+                player = character.Gunner(all_sprites, bullets)
+            elif ship_player:
+                player = character.Player(sprites, key_btn, mouse_btn, ju, sh, equip, all_sprites, bullets, drobs)
             inv = inventar.Inventar()
             shotgun = icons.Icon_sh()
             shotgun_big = icons.Icon_sh_big()
@@ -1378,6 +1403,7 @@ def kill_or_die():
                 draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
                 draw_text(screen, str(max_score), 30, x - 200, 40)
                 draw_text(screen, 'Таймер: ' + str(count), 30, 150, 20)
+                draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
                 if i == 0:
                     pygame.mixer.music.load(os.path.join(snd_folder, 'speed.mp3'))
                     pygame.mixer.music.set_volume(0.2)
@@ -1464,6 +1490,7 @@ def kill_or_die():
         draw_text(screen, str(score), 30, x // 2, 40)
         draw_text(screen, 'Лучший результат:', 30, x - 200, 10)
         draw_text(screen, str(max_score), 30, x - 200, 40)
+        draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
         pygame.display.flip()
     return
 
@@ -1471,8 +1498,8 @@ def kill_or_die():
 def preview():
     functions.hardmode = False
     achievment.success()
+    functions.newplayer()
     global all_sprites, drobs, bullets, vaders_group, bosses
-    global screen
 
     loading.pause_snd.play(-1)
     loading.pause_snd.stop()
@@ -1487,7 +1514,7 @@ def preview():
     for img in background_list:
         if img == 'background1.jpg':
             bd = pygame.image.load(os.path.join(img_folder, img))
-            bd = pygame.transform.scale(bd, (x + 200, y))
+            bd = pygame.transform.scale(bd, (x + 100, y))
             background_images.append(bd)
         else:
             bd = pygame.image.load(os.path.join(img_folder, img))
@@ -1498,18 +1525,41 @@ def preview():
 
     random_background = random.choice(background_images)
 
+    def player_player():
+        global ship_player, ship_gunner
+        ship_player = True
+        ship_gunner = False
+        start()
+
+    def player_gunner():
+        global ship_player, ship_gunner
+        ship_player = False
+        ship_gunner = True
+        start()
+
+    def characters():
+        btn_player.change(x // 3, y // 2, 'ВЫББЕРИТЕ ПЕРСОНАЖА', player_player)
+        if (functions.newgunner == 0) or (functions.newgunner == 1):
+            btn_gunner.change(x // 2, y // 2, 'ВЫББЕРИТЕ ПЕРСОНАЖА')
+        elif functions.newgunner == 2:
+            btn_gunner.change(x // 2, y // 2, 'ВЫББЕРИТЕ ПЕРСОНАЖА', player_gunner)
+
     def start():
         def changes():
             btn_start.function = functions.hardgame(game)
 
+        btn_player.change(x + 1000, y // 2, ' ')
+        btn_gunner.change(x + 1000, y // 2, ' ')
         btn_start.change(0, 0, 440)
         btn_start.change(x // 2 - btn_start.width // 2, y - 120, 440, 70, 'Сложный режим', changes)
         btn_option.change(btn_start.rect.x + btn_start.width, y - 120, 440, 70, 'Режим таймера', kill_or_die)
         btn_quit.change(btn_start.rect.x - btn_start.width, y - 120, 440, 70, 'Лёгкий режим', game)
 
     def back():
+        btn_player.change(x + 1000, y // 2, ' ')
+        btn_gunner.change(x + 1000, y // 2, ' ')
         btn_quit.change(x // 4, y - 120, 170, 70, 'Выход', super_break)
-        btn_start.change(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, 'Старт', start)
+        btn_start.change(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, 'Старт', characters)
         btn_option.change(btn_quit.rect.x + btn_quit.width + btn_start.width, y - 120, 190, 70, 'Опции', settings)
 
     vaders_group = pygame.sprite.Group()
@@ -1521,23 +1571,36 @@ def preview():
         all_sprites.add(imp)
         vaders_group.add(imp)
 
-    npc = character.Npc(all_sprites, bullets)
+    npc = character.Npc(all_sprites, bullets, sprites)
 
     btn_quit = button.Buttonpy(x // 4, y - 120, 170, 70, screen, 'Выход', super_break)
-    btn_start = button.Buttonpy(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, screen, 'Старт', start)
+    btn_start = button.Buttonpy(btn_quit.rect.x + btn_quit.width, y - 120, 300, 70, screen, 'Старт', characters)
     btn_option = button.Buttonpy(btn_quit.rect.x + btn_quit.width + btn_start.width, y - 120, 190, 70, screen, 'Опции',
                                  settings)
+    btn_player = button.ButtonPlayer(x + 1000, y // 2, screen, 'player', ' ', start)
+    btn_gunner = button.ButtonPlayer(x + 1000, y // 2, screen, 'gunner', ' ', start)
+    all_sprites.add(btn_player)
+    all_sprites.add(btn_gunner)
 
     all_sprites.add(npc)
 
     all_sprites.add(btn_quit)
     all_sprites.add(btn_start)
     all_sprites.add(btn_option)
+    all_sprites.add(btn_player)
+    all_sprites.add(btn_gunner)
 
     clock = pygame.time.Clock()
 
+    FPS = 60
+
     while True:
         clock.tick(FPS)
+        key = pygame.key.get_pressed()
+        if (key[pygame.K_DOWN]) and (FPS >= 2):
+            FPS -= 1
+        if key[pygame.K_UP]:
+            FPS += 1
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1579,7 +1642,7 @@ def preview():
                     else:
                         expl = explosions.Explosion(npc.rect.center, 'hu', 2)
                         all_sprites.add(expl)
-                    npc = character.Npc()
+                    npc = character.Npc(all_sprites, bullets, sprites)
                     all_sprites.add(npc)
 
         boom_b = pygame.sprite.groupcollide(vaders_group, bullets, False, True, pygame.sprite.collide_circle)
@@ -1621,19 +1684,22 @@ def preview():
         draw_text(screen, btn_quit.text, 40, btn_quit.rect.x + btn_quit.width // 2, btn_quit.rect.y)
         draw_text(screen, btn_start.text, 40, btn_start.rect.x + btn_start.width // 2, btn_start.rect.y)
         draw_text(screen, btn_option.text, 40, btn_option.rect.x + btn_option.width // 2, btn_option.rect.y)
+        draw_text(screen, btn_gunner.text, 50, x // 2, y // 3)
 
         draw_text(screen, '"ESC": выход', 20, x - 100, 70)
         draw_text(screen, '"E": назад', 20, 100, 70)
         draw_text(screen, '"Q": достижения', 20, 110, 130)
+
+        draw_text(screen, 'FPS: ' + str(FPS), 30, x - 100, 130, (255, 0, 0))
 
         pygame.display.flip()
         pygame.display.update()
     return
 
 
-def draw_text(surf, text, size, x, y):
+def draw_text(surf, text, size, x, y, color=(255, 255, 255)):
     font = pygame.font.Font(font_name, size)
-    text_surface = font.render(text, True, (255, 255, 255))
+    text_surface = font.render(text, True, color)
     text_rect = text_surface.get_rect()
     text_rect.midtop = (x, y)
     surf.blit(text_surface, text_rect)
@@ -1644,8 +1710,16 @@ def current_score():
         file.write(str(score) + ' ')
 
 
-def spacebar():
-    loading.spacebar_snd.play()
+def delete_cash(arg_score, arg_death, arg_player):
+    if arg_score == score:
+        with open('scriptspy\papers\score.txt', 'wb'):
+            pass
+    if arg_death == achievment.gameovers:
+        with open('scriptspy\papers\deathes.txt', 'wb'):
+            pass
+    if arg_player == functions.newgunner:
+        with open('scriptspy\papers\gunner.txt', 'wb'):
+            pass
 
 
 def super_break():
@@ -1658,7 +1732,7 @@ count1 = 1
 
 
 def sprite():
-    spacebar()
+    loading.spacebar_snd.play()
     global sprites
     global count1
     global button_sprites
@@ -1675,7 +1749,7 @@ def sprite():
 
 
 def keyboard():
-    spacebar()
+    loading.spacebar_snd.play()
     global mouse_btn
     global key_btn
     key_btn = 1
@@ -1684,7 +1758,7 @@ def keyboard():
 
 
 def mouse():
-    spacebar()
+    loading.spacebar_snd.play()
     global mouse_btn
     global key_btn
     key_btn = 0
@@ -1699,7 +1773,7 @@ def speed():
 
 
 def skins():
-    spacebar()
+    loading.spacebar_snd.play()
     global jelly, putin, virus, vaders, death
 
     if var.get() == 0:
@@ -1747,7 +1821,7 @@ def reset():
 
 
 def moving():
-    spacebar()
+    loading.spacebar_snd.play()
     if key_btn == 1:
         messagebox.showinfo('Меню игры STAR WARS - THE JOKE',
                             'УПРАВЛЕНИЕ: \n W - вверх \n S - вниз \n A - влево \n D - вправо \n ПРОБЕЛ - стрелять \n "1" - переключить на первое оружие \n "2" - переключить на второе оружие \n "ESC" - пауза')
