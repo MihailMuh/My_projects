@@ -1,6 +1,7 @@
 import pygame
 from pygame.math import Vector2
 import math
+import random
 from scriptspy import loading, system_size
 pygame.init()
 
@@ -34,7 +35,7 @@ class Drob(pygame.sprite.Sprite):
     def update(self):
         self.rect.y += self.speedy
         self.rect.x += self.speedx
-        if self.rect.bottom < 0:
+        if (self.rect.x < 0) or (self.rect.x > system_size.x) or (self.rect.y < 0):
             self.kill()
 
 
@@ -51,7 +52,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.speedy
-        if self.rect.bottom < 0:
+        if (self.rect.x < 0) or (self.rect.x > system_size.x) or (self.rect.y < 0):
             self.kill()
 
 
@@ -97,7 +98,7 @@ class Drob_boss(pygame.sprite.Sprite):
     def update(self):
         self.rect.y -= self.speedy
         self.rect.x -= self.speedx
-        if self.rect.bottom < 0:
+        if (self.rect.x < 0) or (self.rect.x > system_size.x) or (self.rect.y < 0) or (self.rect.y > system_size.y):
             self.kill()
 
 
@@ -123,5 +124,28 @@ class BulletEnemy(pygame.sprite.Sprite):
     def update(self):
         self.pos += self.velocity
         self.rect.center = self.pos
-        if (self.pos[0] < -400) or (self.pos[0] > system_size.x + 400) or (self.pos[1] > system_size.y + 400):
+        if (self.rect.x < 0) or (self.rect.x > system_size.x) or (self.rect.y < 0) or (self.rect.y > system_size.y):
+            self.kill()
+
+
+class Bull(pygame.sprite.Sprite):
+    def __init__(self, pos, angle):
+        pygame.sprite.Sprite.__init__(self)
+        self.radius = 15
+        self.pog = random.randint(-23, 23)
+        self.pos = pos
+        self.angle = angle + self.pog - 9
+
+        self.image = loading.img_bull
+        self.image = pygame.transform.scale(self.image, (13, 13))
+        self.rect = self.image.get_rect(center=pos)
+
+        offset = Vector2(85, 0).rotate(self.angle)
+        self.pos = Vector2(self.pos) + offset
+        self.velocity = Vector2(2, 0).rotate(self.angle) * 9
+
+    def update(self):
+        self.pos += self.velocity
+        self.rect.center = self.pos
+        if (self.pos[0] < 0) or (self.pos[0] > system_size.x) or (self.pos[1] < 0):
             self.kill()

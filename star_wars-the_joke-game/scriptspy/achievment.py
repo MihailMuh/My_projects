@@ -1,7 +1,7 @@
 import pygame
 import os
-from scriptspy import loading, shoots, system_size
-from PIL import ImageTk, Image
+from scriptspy import loading, shoots, system_size, functions
+from PIL import ImageTk
 from tkinter import *
 
 pygame.init()
@@ -39,6 +39,7 @@ def achievements():
 
     img_achievement2 = ImageTk.PhotoImage(loading.img_achievement)
     img_skull2 = ImageTk.PhotoImage(loading.img_skull)
+    img_gunner_tk = ImageTk.PhotoImage(loading.img_gunner_tk)
 
     canvas = Canvas(root, width=system_size.x+10, height=system_size.y+10, bg='black')
     canvas.pack()
@@ -56,6 +57,15 @@ def achievements():
                                   fill="#dceca4")
         text = canvas.create_text(130, 50, font=("Comic Sans MS", 15), text="Награда: скин ", fill="#dceca4")
         canvas.create_image(230, 50, image=img_skull2)
+
+    canvas.create_image(17, 100, image=img_achievement2)
+    if functions.newgunner == 2:
+        text = canvas.create_text(183, 100, font=("Comic Sans MS", 15), text="Спасти союзный корабль", fill="#dceca4")
+        text = canvas.create_text(130, 130, font=("Comic Sans MS", 20), text="Получено", fill="#dceca4")
+    else:
+        text = canvas.create_text(183, 100, font=("Comic Sans MS", 15), text="Спасти союзный корабль", fill="#dceca4")
+        text = canvas.create_text(183, 130, font=("Comic Sans MS", 15), text="Награда: новый персонаж ", fill="#dceca4")
+        canvas.create_image(350, 130, image=img_gunner_tk)
 
     d = Button(text="OK", command=break_root, font=("Comic Sans MS", 30))
     d.place(x=50, y=system_size.y-200)
