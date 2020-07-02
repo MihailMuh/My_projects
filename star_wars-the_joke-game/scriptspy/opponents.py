@@ -57,7 +57,12 @@ class Imperia(pygame.sprite.Sprite):
         self.rot = 0
 
     def damage(self, status='small'):
-        self.health -= 1
+        if status == 'small':
+            self.health -= 1
+        elif status == 'mini':
+            self.health -= 0.5
+        else:
+            self.health -= 1
 
     def rotate(self):
         if self.virus2:
@@ -120,7 +125,7 @@ class Imperia(pygame.sprite.Sprite):
 
 
 class TripleFighter(pygame.sprite.Sprite):
-    def __init__(self, sprites2, bosses2, speed_enem2, all_sprites2, drobs2):
+    def __init__(self, sprites2, bosses2, speed_enem2, all_sprites2, drobs2, sufferx, suffery):
         pygame.sprite.Sprite.__init__(self)
         self.radius = 70
         self.angle = 0
@@ -129,6 +134,8 @@ class TripleFighter(pygame.sprite.Sprite):
         self.speed_enem2 = speed_enem2
         self.all_sprites2 = all_sprites2
         self.drobs2 = drobs2
+        self.sufferx = sufferx
+        self.suffery = suffery
         self.health = 5
         self.rot_speed = 0
 
@@ -146,8 +153,7 @@ class TripleFighter(pygame.sprite.Sprite):
         self.last_shotgun = pygame.time.get_ticks()
 
     def rotate(self):
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        rel_x, rel_y = mouse_x - self.rect.x, mouse_y - self.rect.y
+        rel_x, rel_y = self.sufferx - self.rect.x, self.suffery - self.rect.y
         self.angle = -((180 / math.pi) * -math.atan2(rel_y, rel_x))
 
     def shoot(self):
@@ -167,8 +173,10 @@ class TripleFighter(pygame.sprite.Sprite):
             loading.shotgun_sound.play()
 
     def damage(self, status):
-        if status == 'rifle':
+        if status == 'small':
             self.health -= 1.5
+        elif status == 'mini':
+            self.health -= 0.9
         else:
             self.health -= 2.5
 
@@ -218,14 +226,16 @@ class TripleFighter(pygame.sprite.Sprite):
 
 
 class Minion(pygame.sprite.Sprite):
-    def __init__(self, sprites2, bosses2, all_sprites2, drobs2):
+    def __init__(self, sprites2, bosses2, all_sprites2, drobs2, sufferx, suffery):
         pygame.sprite.Sprite.__init__(self)
-        self.radius = 70
+        self.radius = 40
         self.angle = 0
         self.sprites2 = sprites2
         self.all_sprites2 = all_sprites2
         self.bosses2 = bosses2
         self.drobs2 = drobs2
+        self.sufferx = sufferx
+        self.suffery = suffery
         self.health = 1
 
         self.image = loading.img_minion
@@ -242,8 +252,7 @@ class Minion(pygame.sprite.Sprite):
         self.last_shotgun = pygame.time.get_ticks()
 
     def rotate(self):
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        rel_x, rel_y = mouse_x - self.rect.x, mouse_y - self.rect.y
+        rel_x, rel_y = self.sufferx - self.rect.x, self.suffery - self.rect.y
         self.angle = -((180 / math.pi) * -math.atan2(rel_y, rel_x))
 
     def shoot(self):
@@ -254,10 +263,15 @@ class Minion(pygame.sprite.Sprite):
             drob = shoots.BulletEnemy('drob', (self.rect.centerx, self.rect.bottom), self.angle)
             self.all_sprites2.add(drob)
             self.drobs2.add(drob)
-            loading.laser_sound.play()
+            loading.shotgun_sound.play()
 
-    def damage(self):
-        self.health -= 1
+    def damage(self, status='small'):
+        if status == 'small':
+            self.health -= 1
+        elif status == 'mini':
+            self.health -= 0.5
+        else:
+            self.health -= 1
 
     def update(self):
         self.rect.y += self.speedy_imp
@@ -277,13 +291,15 @@ class Minion(pygame.sprite.Sprite):
 
 
 class Factory(pygame.sprite.Sprite):
-    def __init__(self, all_sprites2, sprites2, bosses2, drobs2, place):
+    def __init__(self, all_sprites2, sprites2, bosses2, drobs2, place, sufferx, suffery):
         pygame.sprite.Sprite.__init__(self)
         self.all_sprites2 = all_sprites2
         self.sprites2 = sprites2
         self.bosses2 = bosses2
         self.drobs2 = drobs2
         self.place = place
+        self.sufferx = sufferx
+        self.suffery = suffery
 
         self.health = 16
 
@@ -301,12 +317,17 @@ class Factory(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         if now - self.last_spawn > self.spawn_time:
             self.last_spawn = now
-            minion = Minion(self.sprites2, self.bosses2, self.all_sprites2, self.drobs2)
+            minion = Minion(self.sprites2, self.bosses2, self.all_sprites2, self.drobs2, self.sufferx, self.suffery)
             self.all_sprites2.add(minion)
             self.place.add(minion)
 
-    def damage(self):
-        self.health -= 0.7
+    def damage(self, status='small'):
+        if status == 'small':
+            self.health -= 0.7
+        elif status == 'mini':
+            self.health -= 0.55
+        else:
+            self.health -= 0.7
 
     def update(self):
         self.rect.y += self.speedy_imp
@@ -391,3 +412,26 @@ class Attention(pygame.sprite.Sprite):
 
     def visible(self, x):
         self.rect.centerx = x
+
+
+class NewPlayer(pygame.sprite.Sprite):
+    def __init__(self, sprites2):
+        pygame.sprite.Sprite.__init__(self)
+        self.radius = 70
+        self.sprites2 = sprites2
+
+        self.image = loading.img_gunner
+        self.image = pygame.transform.scale(self.image, (130, 180))
+        self.image = pygame.transform.rotate(self.image, random.randint(1, 361))
+        self.rect = self.image.get_rect()
+        if self.sprites2:
+            pygame.draw.circle(self.image, (0, 0, 100), self.rect.center, self.radius)
+
+        self.rect.centerx = random.randrange(200, system_size.x + 200)
+        self.rect.bottom = -250
+        self.speed = 3
+
+    def update(self):
+        self.rect.y += self.speed
+        if self.rect.top > system_size.y + 300:
+            self.kill()

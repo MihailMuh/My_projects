@@ -1,7 +1,8 @@
 import pygame
 import os
-from PIL import ImageTk, Image
-from scriptspy import system_size
+from PIL import Image
+import time
+from scriptspy import system_size, functions
 
 pygame.init()
 pygame.mixer.init()
@@ -37,6 +38,11 @@ img_factory = pygame.image.load(os.path.join(img_folder, 'factory.png'))
 img_minion = pygame.image.load(os.path.join(img_folder, 'minion.png'))
 img_attention = pygame.image.load(os.path.join(img_folder, 'attention.png'))
 img_rocket = pygame.image.load(os.path.join(img_folder, 'rocket.png'))
+img_gunner = pygame.image.load(os.path.join(img_folder, 'gunner.png'))
+img_bull = pygame.image.load(os.path.join(img_folder, 'bull.png'))
+img_gunner_button = pygame.image.load(os.path.join(img_folder, 'gunner_button.png'))
+img_gunner_button_unknown = pygame.image.load(os.path.join(img_folder, 'gunner_button_unknown.png'))
+img_player_button = pygame.image.load(os.path.join(img_folder, 'ship_button.png'))
 
 laser_sound = pygame.mixer.Sound(os.path.join(snd_folder, 'laser.wav'))
 laser_sound.set_volume(0.05)
@@ -58,6 +64,10 @@ win = pygame.mixer.Sound(os.path.join(snd_folder, 'win.wav'))
 win.set_volume(0.45)
 spacebar_snd = pygame.mixer.Sound(os.path.join(snd_folder, 'spacebar.wav'))
 spacebar_snd.set_volume(0.30)
+minigan_sound = pygame.mixer.Sound(os.path.join(snd_folder, 'minigan.wav'))
+minigan_sound.set_volume(0.07)
+gameover_phrase = pygame.mixer.Sound(os.path.join(snd_folder, 'gameover_phrase.wav'))
+gameover_phrase.set_volume(0.50)
 
 img1 = Image.open(os.path.join(img_folder, 'vader4.png'))
 img1 = img1.resize((80, 70), Image.ANTIALIAS)
@@ -81,6 +91,8 @@ img_skull2 = Image.open(os.path.join(img_folder, 'skull.png'))
 img_skull2 = img_skull2.resize((65, 80), Image.ANTIALIAS)
 img_ram = Image.open(os.path.join(img_folder, 'ram.jpg'))
 img_ram = img_ram.resize((system_size.x, system_size.y), Image.ANTIALIAS)
+img_gunner_tk = Image.open(os.path.join(img_folder, 'gunner.png'))
+img_gunner_tk = img_gunner_tk.resize((69, 100), Image.ANTIALIAS)
 
 vader_images = []
 vader_list = ['vader.png', 'vader2.png', 'vader3.png']
@@ -110,7 +122,7 @@ explosion_anim2 = {}
 explosion_anim2['lg'] = []
 explosion_anim2['sm'] = []
 explosion_anim2['hu'] = []
-for i in range(12):
+for i in range(14):
     filename2 = 'Explosion0{}.png'.format(i)
     img2 = pygame.image.load(os.path.join(img_folder, filename2))
     img_hu2 = pygame.transform.scale(img2, (300, 280))
@@ -120,5 +132,12 @@ for i in range(12):
     img_sm2 = pygame.transform.scale(img2, (70, 55))
     explosion_anim2['sm'].append(img_sm2)
 
-chanse_triple_fighter = 0.2
+days = ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+weekday = days[time.localtime().tm_wday]
+
+chanse_triple_fighter = 0.15
 chanse_dead_boss = 0.35
+chanse_rocket = 0.997
+chanse_factory = 0.9975
+chanse_shotgun = 0.99
+chanse_heal = 0.9995

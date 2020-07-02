@@ -1,9 +1,12 @@
 import pygame
 import math
+from scriptspy import loading
 
 pygame.init()
 hardmode = False
 godmode = False
+newgunner = 0
+for_file = []
 
 
 def draw_health_bar_boss(surf, x, y, pct, who=30):
@@ -63,5 +66,34 @@ def rect_distance(rect1, rect2):
         return y1 - y2b
     elif bottom:
         return y2 - y1b
-    else:  # rectangles intersect
+    else:
         return 0.
+
+
+def newplayer():
+    global newgunner
+    with open('scriptspy\papers\gunner.txt', 'r') as file:
+        lines = file.readlines()
+        if lines:
+            list = lines[0].split(' ')
+            for i in list:
+                if i != '':
+                    for_file.append(int(i))
+        if 2 in for_file:
+            newgunner = 2
+        elif 1 in for_file:
+            newgunner = 1
+        elif len(for_file) == 0:
+            newgunner = 0
+    return newgunner
+
+
+def spawnsplayer():
+    with open('scriptspy\papers\gunner.txt', 'a') as file:
+        if (newgunner != 2) and (newgunner != 1) and ((loading.weekday == 'Tuesday') or (loading.weekday == 'Friday')):
+            file.write('1 ')
+
+
+def unlockplayer():
+    with open('scriptspy\papers\gunner.txt', 'a') as file:
+        file.write('2 ')
